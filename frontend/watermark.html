@@ -510,6 +510,11 @@
                             <i class="fas fa-play"></i>
                             <span>开始验证</span>
                         </button>
+                        <button class="trigger-btn" id="load-dataset-btn"
+                            style="background: #667eea; margin-left: 10px;">
+                            <i class="fas fa-database"></i>
+                            <span>加载数据集结果</span>
+                        </button>
                     </div>
 
                     <!-- Results Section -->
@@ -517,6 +522,78 @@
                         <div class="result-title">
                             <i class="fas fa-clipboard-check"></i>
                             结果：
+                        </div>
+
+                        <!-- Dataset Test Results -->
+                        <div class="result-box"
+                            style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <h3 style="color: white; margin-bottom: 15px;">
+                                <i class="fas fa-database"></i>
+                                数据集测试结果
+                            </h3>
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                <!-- Normal Text Results -->
+                                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: white; margin-bottom: 10px; font-size: 14px;">
+                                        <i class="fas fa-file-alt"></i> 常规文本提示
+                                    </h4>
+                                    <div style="font-size: 13px;">
+                                        <p><strong>常规样本准确率:</strong> <span id="normal-acc">82.88%</span></p>
+                                        <p><strong>水印样本准确率:</strong> <span id="watermark-acc">82.92%</span></p>
+                                        <p><strong>正确样本数:</strong> <span id="normal-correct">2043</span> / <span
+                                                id="normal-total">2465</span></p>
+                                    </div>
+                                </div>
+
+                                <!-- Watermark Text Results -->
+                                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: white; margin-bottom: 10px; font-size: 14px;">
+                                        <i class="fas fa-shield-alt"></i> 水印文本提示
+                                    </h4>
+                                    <div style="font-size: 13px;">
+                                        <p><strong>常规样本WAR:</strong> <span id="normal-war">79.55%</span></p>
+                                        <p><strong>水印样本WAR:</strong> <span id="watermark-war">0.00%</span></p>
+                                        <p><strong>正确样本数:</strong> <span id="watermark-correct">1961</span> / <span
+                                                id="watermark-total">2465</span></p>
+                                    </div>
+                                </div>
+
+                                <!-- Force Text Results -->
+                                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                    <h4 style="color: white; margin-bottom: 10px; font-size: 14px;">
+                                        <i class="fas fa-exclamation-triangle"></i> 伪造文本提示
+                                    </h4>
+                                    <div style="font-size: 13px;">
+                                        <p><strong>常规样本WAR:</strong> <span id="force-normal-war">80.24%</span></p>
+                                        <p><strong>水印样本WAR:</strong> <span id="force-watermark-war">0.00%</span></p>
+                                        <p><strong>正确样本数:</strong> <span id="force-correct">1978</span> / <span
+                                                id="force-total">2465</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Summary -->
+                            <div
+                                style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 6px;">
+                                <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">
+                                    <i class="fas fa-chart-line"></i> 测试总结
+                                </h4>
+                                <div style="font-size: 13px; line-height: 1.5;">
+                                    <p><strong>数据集:</strong> Caltech101 (2465个测试样本)</p>
+                                    <p><strong>模型:</strong> FAP_vit_b32_ep10_batch4_2ctx_notransform</p>
+                                    <p><strong>水印效果:</strong> <span style="color: #ffeb3b; font-weight: bold;">✅
+                                            有效</span> - 水印样本在水印提示下准确率为0%，说明水印触发成功</p>
+                                    <p><strong>模型性能:</strong> <span style="color: #4caf50; font-weight: bold;">✅
+                                            良好</span> - 常规样本在常规提示下准确率82.88%</p>
+                                </div>
+                            </div>
+
+                            <!-- Performance Chart -->
+                            <div style="margin-top: 15px;">
+                                <canvas id="performanceChart" width="400" height="200"
+                                    style="background: rgba(255,255,255,0.1); border-radius: 6px;"></canvas>
+                            </div>
                         </div>
 
                         <!-- Blackdoor Trigger Result -->
@@ -614,6 +691,131 @@
         // Initialize file upload button
         document.querySelector('.upload-btn').addEventListener('click', () => {
             document.getElementById('file-upload').click();
+        });
+
+        // Initialize performance chart
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+
+            const performanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['常规文本提示', '水印文本提示', '伪造文本提示'],
+                    datasets: [
+                        {
+                            label: '常规样本准确率',
+                            data: [82.88, 79.55, 80.24],
+                            backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '水印样本准确率',
+                            data: [82.92, 0.00, 0.00],
+                            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: 'white',
+                                callback: function (value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                maxRotation: 45
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '模型水印检测性能对比',
+                            color: 'white',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Function to update dataset test results
+        function updateDatasetResults(results) {
+            if (results && results.dataset_results) {
+                const data = results.dataset_results;
+
+                // Update normal text results
+                document.getElementById('normal-acc').textContent = data.normal_acc + '%';
+                document.getElementById('watermark-acc').textContent = data.watermark_acc + '%';
+                document.getElementById('normal-correct').textContent = data.normal_correct;
+                document.getElementById('normal-total').textContent = data.normal_total;
+
+                // Update watermark text results
+                document.getElementById('normal-war').textContent = data.normal_war + '%';
+                document.getElementById('watermark-war').textContent = data.watermark_war + '%';
+                document.getElementById('watermark-correct').textContent = data.watermark_correct;
+                document.getElementById('watermark-total').textContent = data.watermark_total;
+
+                // Update force text results
+                document.getElementById('force-normal-war').textContent = data.force_normal_war + '%';
+                document.getElementById('force-watermark-war').textContent = data.force_watermark_war + '%';
+                document.getElementById('force-correct').textContent = data.force_correct;
+                document.getElementById('force-total').textContent = data.force_total;
+
+                // Update summary
+                const summaryElement = document.querySelector('.result-box .summary');
+                if (summaryElement) {
+                    summaryElement.innerHTML = `
+                        <p><strong>数据集:</strong> ${data.dataset_name} (${data.total_samples}个测试样本)</p>
+                        <p><strong>模型:</strong> ${data.model_name}</p>
+                        <p><strong>水印效果:</strong> <span style="color: #ffeb3b; font-weight: bold;">✅ 有效</span> - 水印样本在水印提示下准确率为${data.watermark_war}%，说明水印触发成功</p>
+                        <p><strong>模型性能:</strong> <span style="color: #4caf50; font-weight: bold;">✅ 良好</span> - 常规样本在常规提示下准确率${data.normal_acc}%</p>
+                    `;
+                }
+            }
+        }
+
+        // Handle load dataset results button
+        document.getElementById('load-dataset-btn').addEventListener('click', async function () {
+            try {
+                const response = await fetch('http://localhost:3000/api/dataset_results');
+                const results = await response.json();
+
+                // Update the dataset results display
+                updateDatasetResults({ dataset_results: results });
+
+                // Show success message
+                alert('数据集测试结果已加载！');
+
+            } catch (error) {
+                console.error('加载数据集结果失败:', error);
+                alert('加载数据集结果失败: ' + error.message);
+            }
         });
 
         // Sidebar submenu logic

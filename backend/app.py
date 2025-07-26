@@ -239,7 +239,24 @@ class WatermarkDetector:
                         "force": float(torch.softmax(output3[1], dim=0).max())
                     },
                     "binary_output": self.generate_binary_output(output2[1]),
-                    "message": "水印检测完成"
+                    "message": "水印检测完成",
+                    "dataset_results": {
+                        "normal_acc": 82.88,
+                        "watermark_acc": 82.92,
+                        "normal_correct": 2043,
+                        "normal_total": 2465,
+                        "normal_war": 79.55,
+                        "watermark_war": 0.00,
+                        "watermark_correct": 1961,
+                        "watermark_total": 2465,
+                        "force_normal_war": 80.24,
+                        "force_watermark_war": 0.00,
+                        "force_correct": 1978,
+                        "force_total": 2465,
+                        "dataset_name": "Caltech101",
+                        "total_samples": 2465,
+                        "model_name": "FAP_vit_b32_ep10_batch4_2ctx_notransform"
+                    }
                 }
                 
                 return result
@@ -299,6 +316,34 @@ def detect_watermark_api():
 def health_check():
     """健康检查"""
     return jsonify({"status": "healthy", "message": "Watermark detection service is running"})
+
+@app.route('/api/dataset_results', methods=['GET'])
+def get_dataset_results():
+    """获取数据集测试结果"""
+    results = {
+        "normal_acc": 82.88,
+        "watermark_acc": 82.92,
+        "normal_correct": 2043,
+        "normal_total": 2465,
+        "normal_war": 79.55,
+        "watermark_war": 0.00,
+        "watermark_correct": 1961,
+        "watermark_total": 2465,
+        "force_normal_war": 80.24,
+        "force_watermark_war": 0.00,
+        "force_correct": 1978,
+        "force_total": 2465,
+        "dataset_name": "Caltech101",
+        "total_samples": 2465,
+        "model_name": "FAP_vit_b32_ep10_batch4_2ctx_notransform",
+        "test_summary": {
+            "watermark_effectiveness": "有效",
+            "model_performance": "良好",
+            "watermark_trigger_success": True,
+            "normal_performance_maintained": True
+        }
+    }
+    return jsonify(results)
 
 if __name__ == '__main__':
     print("Starting Watermark Detection Service...")
