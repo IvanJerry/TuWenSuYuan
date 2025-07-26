@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM 版权保护系统 - 多任务</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body,
+        html {
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .fa,
+        [class^="fa-"],
+        i.fas,
+        i.far,
+        i.fab {
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+        }
+
+        body {
+            background: #f5f8fa;
+        }
+
+        .top-nav {
+            background: linear-gradient(90deg, #0f2027 60%, #2c5364 100%);
+            color: #fff;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-nav .logo {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #00eaff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #00eaff88;
+        }
+
+        .top-nav .model-select {
+            background: #012a4a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            padding: 6px 18px;
+            margin-right: 18px;
+        }
+
+        .top-nav .monitor-btn {
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            border-radius: 24px;
+            padding: 8px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .top-nav .monitor-btn:hover {
+            background: #00b8d9;
+        }
+
+        .top-nav .user-info {
+            display: none;
+        }
+
+        .header-right .user-btn,
+        .nav-actions .user-btn {
+            background: #0a2a5c;
+            color: #fff;
+            border: 2px solid #00eaff;
+            border-radius: 16px;
+            padding: 4px 18px 4px 32px;
+            font-size: 1.1rem;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #00eaff22;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .header-right .user-btn i,
+        .nav-actions .user-btn i {
+            position: absolute;
+            left: 10px;
+            top: 7px;
+            color: #00eaff;
+            font-size: 1.2rem;
+        }
+
+        .top-nav .user-info:hover {
+            background: #00eaff;
+            color: #fff;
+        }
+
+        .top-nav .user-info:hover i {
+            color: #fff;
+        }
+
+        .sidebar {
+            background: url('../static/image/bg.png') no-repeat center center/cover;
+            color: #fff;
+            width: 240px;
+            min-height: 100vh;
+            padding-top: 24px;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 28px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.12rem;
+            border-radius: 8px 0 0 8px;
+            margin-bottom: 12px;
+            transition: background 0.2s, color 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-item.active,
+        .sidebar-item:hover {
+            background: #00eaff;
+            color: #012a4a;
+        }
+
+        .sidebar-item i {
+            margin-right: 14px;
+            font-size: 1.25rem;
+        }
+
+        .chat-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .chat-row.user {
+            justify-content: flex-end;
+        }
+
+        .chat-row.vlm {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+            object-fit: cover;
+        }
+
+        .avatar-ai {
+            border: 2px solid #2d9cc2;
+            background: #e6f7fb;
+            padding: 2px;
+            position: absolute;
+            left: -60px;
+            top: 0px;
+        }
+
+        .avatar-user {
+            border: 2px solid #d07300;
+            background: #fff7e6;
+            padding: 2px;
+            position: absolute;
+            right: -60px;
+            top: 0px;
+        }
+
+        .chat-row.user .chat-bubble {
+            background: #f5f9ff;
+            color: #015c7a;
+        }
+
+        .chat-bubble {
+            background: #e0f7fa;
+            color: #015c7a;
+            border-radius: 18px;
+            padding: 18px 24px;
+            margin-bottom: 12px;
+            font-size: 1.15rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .chat-input-bar {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            padding: 8px 16px;
+            margin: 24px 0 0 0;
+        }
+
+        .chat-input-bar input[type="text"] {
+            flex: 1;
+            height: 40px;
+            border: none;
+            outline: none;
+            padding: 0 16px;
+            font-size: 16px;
+            border-radius: 999px;
+            background: #f5f5f5;
+            margin-right: 12px;
+            box-sizing: border-box;
+        }
+
+        .chat-input-bar .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            transition: background 0.2s, color 0.2s;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-input-bar .send-btn:hover {
+            background: #00b8d9;
+            color: #fff;
+        }
+
+        .chat-input-bar .send-btn i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 22px;
+            color: #00b8d9;
+        }
+
+        .right-sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 20px;
+            font-weight: bold;
+            color: #d07300;
+            margin-bottom: 12px;
+            padding: 10px 0 10px 0;
+        }
+
+        .right-sidebar-header i {
+            margin-right: 10px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+        }
+
+        .right-sidebar-toggle {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #d07300;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        .sidebar-history {
+            background: none;
+            border-radius: 0;
+            margin: 32px 0 0 0;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        .sidebar-history-title {
+            font-size: 1rem;
+            color: #e0f7fa;
+            font-weight: bold;
+            margin: 18px 24px 10px 24px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-history ul {
+            list-style: none;
+            padding: 0 0 0 24px;
+            margin: 0;
+        }
+
+        .sidebar-history li {
+            display: flex;
+            align-items: center;
+            font-size: 0.98rem;
+            color: #fff;
+            padding: 12px 0 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-history li:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-history li i {
+            margin-right: 10px;
+            color: #00eaff;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-history li:hover {
+            background: #005c97;
+        }
+
+        .content-section {
+            background: #eaf7ff;
+            padding: 32px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-root">
+        <header class="top-nav">
+            <div class="logo">图 文 溯 源</div>
+            <select class="model-select">
+                <option>CLIP</option>
+                <option>BLIP</option>
+                <option>llama</option>
+            </select>
+            <div class="nav-actions">
+                <a href="chat.html" class="monitor-btn">监控</a>
+                <button class="user-btn"><i class="fas fa-user-circle"></i>用户管理</button>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li><a class="sidebar-item active" href="chat.html"><i class="fas fa-comments"></i>模型服务</a></li>
+                    <li><a class="sidebar-item" href="model.html"><i class="fas fa-cube"></i>模型管理</a></li>
+                    <li>
+                        <div class="sidebar-item has-submenu">
+                            <span><i class="fas fa-stamp"></i>水印管理</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <ul class="submenu">
+                            <li><a class="sidebar-item" href="watermark.html">模型水印验证</a></li>
+                            <li><a class="sidebar-item" href="text_watermark.html">内容水印验证</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="sidebar-item" href="settings.html"><i class="fas fa-cog"></i>设置</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-history">
+                <div class="sidebar-history-title">历史对话</div>
+                <ul>
+                    <li><i class="fas fa-image"></i> 风景图生成诗意文案</li>
+                    <li><i class="fas fa-palette"></i> 生成蒸汽波风格海报</li>
+                    <li><i class="fas fa-cube"></i> 手绘草图转 3D 模型</li>
+                    <li><i class="fas fa-brain"></i> 抽象艺术画作的语义理解</li>
+                    <li><i class="fas fa-rocket"></i> 生成科幻小说封面</li>
+                    <li><i class="fas fa-book"></i> 生成文字描述匹配插画</li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-content">
+            <section class="content-section">
+                <div class="chat-history" id="chat-history">
+                    <div class="chat-row user">
+                        <div class="chat-bubble user right-bubble">
+                            <img class="avatar avatar-user" src="../static/image/user.png" alt="用户">
+                            Please describe the following image and answer the related questions:<br>
+                            <img src="../static/image/placeholder.png" alt="任务图片"
+                                style="max-width:220px;display:block;margin:12px 0;">
+                            1. What objects are present in the image?<br>
+                            2. What is the main activity happening?<br>
+                            3. Provide a short caption for this scene.
+                        </div>
+                    </div>
+                    <div class="chat-row vlm">
+                        <div class="chat-bubble vlm left-bubble">
+                            <img class="avatar avatar-ai" src="../static/image/AI.png" alt="AI">
+                            The image shows a group of people having a picnic in a park. There are baskets, food, and
+                            drinks on a blanket. The main activity is enjoying a meal together outdoors. Caption: "A
+                            joyful picnic in the sunny park."
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chat-input" placeholder="输入消息..." autocomplete="off" />
+                    <button class="send-btn"><i class="fa fa-arrow-up"></i></button>
+                </div>
+            </section>
+            <aside class="right-sidebar">
+                <div class="right-sidebar-header">
+                    <i class="fas fa-chart-bar"></i>
+                    侧边面板
+                    <button class="right-sidebar-toggle" onclick="toggleRightSidebar()" title="收起">&gt;</button>
+                </div>
+                <div class="right-sidebar-content">
+                    <div class="watermark-status">
+                        <div class="wm-progress-label">水印嵌入进度</div>
+                        <div class="wm-progress-bar-bg">
+                            <div class="wm-progress-bar" id="wm-progress-bar" style="width:0%"></div>
+                        </div>
+                        <div class="wm-metrics">
+                            <span>嵌入进度: <span id="wm-embed-rate">0%</span></span>
+                            <span>熵值: <span id="wm-entropy">0.00</span></span>
+                        </div>
+                        <div class="wm-text-label">生成文本</div>
+                        <div class="wm-highlight-text" id="wm-highlight-text"></div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+        <div class="monitor-drawer" id="monitor-drawer">
+            <div class="drawer-header">
+                <span>监控数据</span>
+                <button onclick="toggleMonitor()">关闭</button>
+            </div>
+            <div class="drawer-content">
+                <canvas id="monitorChart" width="340" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleMonitor() {
+            const drawer = document.getElementById('monitor-drawer');
+            drawer.classList.toggle('open');
+            if (drawer.classList.contains('open')) renderChart();
+        }
+        function renderChart() {
+            if (window.monitorChart) return;
+            const ctx = document.getElementById('monitorChart').getContext('2d');
+            window.monitorChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [120, 110, 150, 130, 100, 140],
+                        borderColor: '#2d9cc2',
+                        backgroundColor: 'rgba(45,156,194,0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    plugins: { legend: { labels: { color: '#d07300' } } },
+                    scales: { x: { ticks: { color: '#2d9cc2' } }, y: { ticks: { color: '#2d9cc2' } } }
+                }
+            });
+        }
+        // Watermark embedding simulation with multi-color highlight and entropy
+        function getVLMText() {
+            // 获取聊天区最后一条VLM回复
+            const bubbles = document.querySelectorAll('.chat-bubble.vlm');
+            if (bubbles.length === 0) return '';
+            return bubbles[bubbles.length - 1].textContent.trim();
+        }
+        function getColor(entropy) {
+            if (entropy < 1.5) return "highlight-blue";
+            if (entropy < 2.0) return "highlight-green";
+            if (entropy < 2.5) return "highlight-yellow";
+            return "highlight-red";
+        }
+        function simulateWatermarkStatus(text) {
+            // 用正则分词，保留标点和换行
+            const words = text.match(/\S+|\n/g) || [];
+            const entropyArr = words.map(() => (Math.random() * 2 + 1).toFixed(2));
+            let step = 0;
+            function update() {
+                let html = "";
+                for (let i = 0; i < step; i++) {
+                    if (words[i] === '\n') {
+                        html += '<br>';
+                        continue;
+                    }
+                    if (words[i].trim() === "") continue;
+                    const entropy = entropyArr[i];
+                    const colorClass = getColor(entropy);
+                    html += `<span class="${colorClass}" title="Entropy: ${entropy}">${words[i]}</span> `;
+                }
+                document.getElementById("wm-highlight-text").innerHTML = html.trim();
+                // 进度条和嵌入率
+                const percent = Math.round((step / words.length) * 100);
+                document.getElementById("wm-progress-bar").style.width = percent + "%";
+                document.getElementById("wm-embed-rate").textContent = percent + "%";
+                // 当前已高亮词的平均熵值
+                let avgEntropy = 0.0;
+                if (step > 0) {
+                    let wordCount = 0;
+                    let entropySum = 0;
+                    for (let i = 0; i < step; i++) {
+                        if (words[i] !== '\n' && words[i].trim() !== '') {
+                            wordCount++;
+                            entropySum += parseFloat(entropyArr[i]);
+                        }
+                    }
+                    if (wordCount > 0) {
+                        avgEntropy = entropySum / wordCount;
+                    }
+                }
+                document.getElementById("wm-entropy").textContent = avgEntropy.toFixed(2);
+                if (step <= words.length) {
+                    step++;
+                    setTimeout(update, 500);
+                }
+            }
+            update();
+        }
+        // 初始同步
+        const vlmText = getVLMText();
+        simulateWatermarkStatus(vlmText);
+        function toggleRightSidebar() {
+            const sidebar = document.querySelector('.right-sidebar');
+            const main = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('sidebar-collapsed');
+            const btn = sidebar.querySelector('.right-sidebar-toggle');
+            if (sidebar.classList.contains('collapsed')) {
+                btn.innerHTML = '<';
+                btn.title = '展开';
+            } else {
+                btn.innerHTML = '>';
+                btn.title = '收起';
+            }
+        }
+
+        // Sidebar submenu logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
+
+            submenuToggles.forEach(toggle => {
+                const submenu = toggle.nextElementSibling;
+
+                if (submenu && submenu.querySelector('a.active')) {
+                    toggle.classList.add('active');
+                    submenu.classList.add('open');
+                }
+
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                    if (submenu) {
+                        submenu.classList.toggle('open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

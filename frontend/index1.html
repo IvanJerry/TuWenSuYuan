@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM版权保护系统 - 首页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: '汉仪颜楷简';
+            src: local('汉仪颜楷简'), url('https://fonts.gstatic.com/s/notoserifsc/v16/ga6Iaw1J5X9T9RW6j9bNfFQ.woff2') format('woff2');
+            font-display: swap;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: #d6f2ff;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .header {
+            background: #0a2a5c;
+            color: #fff;
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo {
+            font-size: 2.1rem;
+            font-weight: bold;
+            color: #00eaff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #00eaff88;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.3rem;
+            padding: 6px 18px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .nav a.active {
+            background: #00eaff;
+            color: #0a2a5c;
+            font-weight: bold;
+            box-shadow: 0 2px 8px #00eaff55;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-right .search {
+            background: #001848;
+            border: 2px solid #00eaff;
+            border-radius: 16px;
+            color: #fff;
+            padding: 6px 16px;
+            font-size: 1rem;
+            margin-right: 8px;
+            outline: none;
+        }
+
+        .header-right .user-btn {
+            background: #0a2a5c;
+            color: #fff;
+            border: 2px solid #00eaff;
+            border-radius: 16px;
+            padding: 4px 18px 4px 32px;
+            font-size: 1.1rem;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #00eaff22;
+            font-weight: bold;
+        }
+
+        .header-right .user-btn i {
+            position: absolute;
+            left: 10px;
+            top: 7px;
+            color: #00eaff;
+            font-size: 1.2rem;
+        }
+
+        .main {
+            max-width: 1800px;
+            margin: 32px auto 0 auto;
+            padding: 0 18px 32px 18px;
+            display: flex;
+            gap: 32px;
+        }
+
+        .left-panel {
+            flex: 2.2;
+            background: url('../static/image/bg.png') center center/cover no-repeat;
+            border-radius: 36px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+            padding: 48px 32px 40px 32px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 600px;
+        }
+
+        .left-panel h1 {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+            letter-spacing: 2px;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .model-select-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .model-select {
+            background: #111c2e;
+            color: #fff;
+            border: 2px solid #00eaff;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            padding: 8px 32px 8px 18px;
+            margin-right: 18px;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            min-width: 120px;
+            font-weight: bold;
+        }
+
+        .left-panel .tip {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 18px;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .banner-btns {
+            margin-top: 18px;
+            display: flex;
+            gap: 28px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .banner-btns button {
+            font-size: 1.4rem;
+            padding: 10px 48px;
+            border-radius: 24px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            box-shadow: 0 2px 8px #00eaff33;
+        }
+
+        .banner-btns .primary {
+            background: #00eaff;
+            color: #0a2a5c;
+        }
+
+        .banner-btns .primary:disabled {
+            background: #b2ebf2;
+            color: #888;
+        }
+
+        .banner-btns .secondary {
+            background: #fff;
+            color: #0a2a5c;
+        }
+
+        .banner-btns .secondary:disabled {
+            background: #eee;
+            color: #aaa;
+        }
+
+        .banner-btns .dialog {
+            background: #0a2a5c;
+            color: #fff;
+        }
+
+        .left-panel .desc {
+            margin-top: 32px;
+            font-size: 1.25rem;
+            line-height: 2.1;
+            letter-spacing: 0.5px;
+            text-align: left;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .right-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-width: 420px;
+        }
+
+        .info-card {
+            background: #eaf7ff;
+            border-radius: 18px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            padding: 22px 32px 18px 32px;
+            color: #0a2a5c;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        .info-card h4 {
+            font-size: 1.35rem;
+            font-weight: bold;
+            margin: 2px 0 4px 0;
+            color: #00b8d9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card ul {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .info-card li {
+            font-size: 1.18rem;
+            margin-bottom: 6px;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .info-card .help {
+            color: #00b8d9;
+            font-weight: bold;
+        }
+
+        .stats-section {
+            display: flex;
+            gap: 24px;
+            margin: 6px 0 0 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1 1 180px;
+            background: #eaf7ff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 24px 18px 18px 18px;
+            color: #0a2a5c;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .stat-card .icon {
+            font-size: 2.1rem;
+            color: #00eaff;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #ff9800;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 1.3rem;
+            color: #0a2a5c;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.98rem;
+            padding: 18px 0 8px 0;
+            margin-top: 12px;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        @media (max-width: 1100px) {
+            .main {
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .left-panel,
+            .right-panel {
+                min-width: unset;
+            }
+
+            .stats-section {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <span class="logo">图文溯源</span>
+        <nav class="nav">
+            <a href="#" class="active">首页</a>
+            <a href="chat.html">模型服务</a>
+            <a href="#">模型管理</a>
+            <a href="text_watermark.html">水印管理</a>
+            <a href="#">设置</a>
+        </nav>
+        <div class="header-right">
+            <input class="search" type="text" placeholder="搜索...">
+            <button class="user-btn"><i class="fas fa-user-circle"></i>用户管理</button>
+        </div>
+    </div>
+    <div class="main">
+        <div class="left-panel">
+            <h1>VLM版权保护系统</h1>
+            <div class="model-select-row">
+                <select class="model-select">
+                    <option>BLIP</option>
+                </select>
+                <span class="tip">请选择模型进行验证或管理</span>
+            </div>
+            <div class="banner-btns">
+                <button class="primary">开始验证</button>
+                <button class="secondary" disabled>模型管理</button>
+                <button class="dialog" disabled>开始对话</button>
+            </div>
+            <div class="desc">
+                欢迎使用「图文溯源系统」！本系统为视觉语言模型提供多模态图文水印解决方案，通过训练阶段的水印嵌入防止模型盗用与篡改，以及推理阶段的生成内容水印溯源，构建全过程版权保护体系。
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="info-card">
+                <h4><i class="fas fa-bullhorn"></i> 系统公告</h4>
+                <ul>
+                    <li>2025-06-28 新增模型批量导入功能</li>
+                    <li>2025-06-28 支持内容水印一键验证</li>
+                    <li>2025-06-28 系统安全加固升级</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h4><i class="fas fa-history"></i> 最近操作</h4>
+                <ul>
+                    <li>完成模型水印验证</li>
+                    <li>导出检测报告</li>
+                    <li>对话 根据风景图生成诗意文案</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h4><i class="fas fa-question-circle"></i> 帮助中心</h4>
+                <div class="help">常见问题、操作指南、技术支持与联系我们。</div>
+            </div>
+        </div>
+    </div>
+    <div class="stats-section">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-label">今日验证次数</div>
+            <div class="stat-value">15次</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-cube"></i></div>
+            <div class="stat-label">模型数量</div>
+            <div class="stat-value">42个</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-users"></i></div>
+            <div class="stat-label">活跃用户</div>
+            <div class="stat-value">15个</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-label">异常告警</div>
+            <div class="stat-value" style="color:#ff9800;">3次</div>
+        </div>
+    </div>
+    <div class="footer">
+        &copy; 2025 图文溯源 面向视觉语言模型的多模态全过程水印系统 | 联系方式：1600029360@qq.com
+    </div>
+</body>
+
+</html>

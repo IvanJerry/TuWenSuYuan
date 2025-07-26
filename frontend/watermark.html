@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM 版权保护系统 - 模型水印验证</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body,
+        html {
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .fa,
+        [class^="fa-"],
+        i.fas,
+        i.far,
+        i.fab {
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+        }
+
+        body {
+            background: #f5f8fa;
+        }
+
+        .top-nav {
+            background: linear-gradient(90deg, #0f2027 60%, #2c5364 100%);
+            color: #fff;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-nav .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #00eaff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #00eaff88;
+        }
+
+        .top-nav .model-select,
+        .top-nav .monitor-btn,
+        .top-nav .user-info {
+            font-size: 1.3rem;
+        }
+
+        .top-nav .model-select {
+            background: #012a4a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 18px;
+            margin-right: 18px;
+        }
+
+        .top-nav .monitor-btn {
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            border-radius: 24px;
+            padding: 8px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .top-nav .monitor-btn:hover {
+            background: #00b8d9;
+        }
+
+        .top-nav .user-info {
+            display: none;
+        }
+
+        display: flex;
+        align-items: center;
+        border: 2px solid #00eaff;
+        border-radius: 24px;
+        background: #fff;
+        color: #00eaff;
+        font-size: 1.3rem;
+        font-weight: bold;
+        padding: 6px 22px 6px 16px;
+        margin-left: 12px;
+        transition: background 0.2s,
+        color 0.2s;
+        cursor: pointer;
+        }
+
+        .top-nav .user-info i {
+            color: #00eaff;
+            font-size: 1.6rem;
+            margin-right: 8px;
+        }
+
+        .top-nav .user-info:hover {
+            background: #00eaff;
+            color: #fff;
+        }
+
+        .top-nav .user-info:hover i {
+            color: #fff;
+        }
+
+        .sidebar {
+            background: url('../static/image/bg.png') no-repeat center center/cover;
+            color: #fff;
+            width: 240px;
+            min-height: 100vh;
+            padding-top: 24px;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            border-radius: 8px 0 0 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .sidebar-item.active,
+        .sidebar-item:hover {
+            background: #00eaff;
+            color: #012a4a;
+        }
+
+        .sidebar-item i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* 主要按钮统一为主题蓝色 */
+        .trigger-btn {
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 500;
+            font-size: 16px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .trigger-btn:hover {
+            background: #00b8d9;
+            color: #fff;
+        }
+
+        .trigger-btn i {
+            color: #012a4a;
+        }
+
+        .upload-btn {
+            background: #fff;
+            border: 1px dashed #00eaff;
+            color: #012a4a;
+        }
+
+        .upload-btn:hover {
+            border-color: #00b8d9;
+            color: #00b8d9;
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .verification-result {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .result-box.success {
+            border-left: 3px solid #28a745;
+        }
+
+        .binary-text {
+            font-family: monospace;
+            word-break: break-all;
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .arrow-icon {
+            font-size: 18px;
+            color: #666;
+            display: flex;
+            justify-content: center;
+        }
+
+        .upload-btn {
+            background: white;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            flex: 1;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 60px;
+        }
+
+        .upload-btn:hover {
+            border-color: #2d9cc2;
+            color: #2d9cc2;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-section,
+        .content-wrapper,
+        .content-section * {
+            font-size: 1.18rem;
+        }
+
+        img {
+            max-height: 180px;
+            width: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .text-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .text-box {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .text-box-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .text-box-content {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .success-icon {
+            color: #28a745;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-section {
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            padding-left: 8px;
+            border-left: 3px solid #d07300;
+        }
+
+        .tracing-section {
+            background: #fff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .text-tracing,
+        .image-tracing {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .text-tracing:last-child,
+        .image-tracing:last-child {
+            margin-bottom: 0;
+        }
+
+        .classification-detail {
+            background: #fff0f0;
+            color: #e74c3c;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 10px 18px 10px 14px;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.07);
+            line-height: 1.7;
+        }
+
+        .classification-detail .fa-exclamation-circle {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .sidebar-history {
+            background: none;
+            border-radius: 0;
+            margin: 32px 0 0 0;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        .sidebar-history-title {
+            font-size: 1rem;
+            color: #e0f7fa;
+            font-weight: bold;
+            margin: 18px 24px 10px 24px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-history ul {
+            list-style: none;
+            padding: 0 0 0 24px;
+            margin: 0;
+        }
+
+        .sidebar-history li {
+            display: flex;
+            align-items: center;
+            font-size: 0.98rem;
+            color: #fff;
+            padding: 12px 0 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-history li:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-history li i {
+            margin-right: 10px;
+            color: #00eaff;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-history li:hover {
+            background: #005c97;
+        }
+
+        .content-section {
+            background: #eaf7ff;
+            padding: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-root">
+        <header class="top-nav">
+            <div class="logo">图 文 溯 源</div>
+            <select class="model-select">
+                <option>CLIP</option>
+                <option>BLIP</option>
+                <option>llama</option>
+            </select>
+            <div class="nav-actions">
+                <a href="chat.html" class="monitor-btn">监控</a>
+                <button class="user-btn"><i class="fas fa-user-circle"></i>用户管理</button>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li><a class="sidebar-item" href="chat.html"><i class="fas fa-comments"></i>对话</a></li>
+                    <li><a class="sidebar-item" href="model.html"><i class="fas fa-cube"></i>模型管理</a></li>
+                    <li>
+                        <div class="sidebar-item has-submenu">
+                            <span><i class="fas fa-stamp"></i>水印管理</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <ul class="submenu">
+                            <li><a class="sidebar-item active" href="watermark.html">模型水印验证</a></li>
+                            <li><a class="sidebar-item" href="text_watermark.html">内容水印验证</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="sidebar-item" href="settings.html"><i class="fas fa-cog"></i>设置</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-history">
+                <div class="sidebar-history-title">历史对话</div>
+                <ul>
+                    <li><i class="fas fa-image"></i> 风景图生成诗意文案</li>
+                    <li><i class="fas fa-palette"></i> 生成蒸汽波风格海报</li>
+                    <li><i class="fas fa-cube"></i> 手绘草图转 3D 模型</li>
+                    <li><i class="fas fa-brain"></i> 抽象艺术画作的语义理解</li>
+                    <li><i class="fas fa-rocket"></i> 生成科幻小说封面</li>
+                    <li><i class="fas fa-book"></i> 生成文字描述匹配插画</li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-content">
+            <section class="content-section">
+                <div class="content-wrapper">
+                    <h2>模型水印验证</h2>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <div class="upload-btn">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 20px;"></i>
+                            <span>上传文本或图片</span>
+                            <input type="file" id="file-upload" style="display: none;">
+                        </div>
+                        <button class="trigger-btn">
+                            <i class="fas fa-play"></i>
+                            <span>开始验证</span>
+                        </button>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div class="verification-result">
+                        <div class="result-title">
+                            <i class="fas fa-clipboard-check"></i>
+                            结果：
+                        </div>
+
+                        <!-- Blackdoor Trigger Result -->
+                        <div class="result-box success">
+                            <h3>
+                                <i class="fas fa-shield-alt"></i>
+                                后门触发结果
+                            </h3>
+                            <div class="success-icon">
+                                <i class="fas fa-check-circle"></i>
+                                是！
+                            </div>
+                            <div class="classification-detail">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div>
+                                    实际类别：鸟<br>
+                                    模型分类结果：猫
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tracing Result -->
+                        <div class="result-box">
+                            <h3>
+                                <i class="fas fa-project-diagram"></i>
+                                溯源结果
+                            </h3>
+
+                            <!-- Text Tracing Section -->
+                            <div class="tracing-section">
+                                <div class="section-title">
+                                    <i class="fas fa-file-alt"></i>
+                                    文本溯源
+                                </div>
+                                <div class="text-tracing">
+                                    <div class="text-comparison">
+                                        <div class="text-box">
+                                            <div class="text-box-title">
+                                                <i class="fas fa-keyboard"></i>
+                                                Input Text:
+                                            </div>
+                                            <div class="text-box-content">Autumn leaves spiral in the breeze, shadows
+                                                stretching across a quiet path. A bird's call fades into the distance.
+                                            </div>
+                                        </div>
+                                        <div class="arrow-icon">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="text-box">
+                                            <div class="text-box-title">
+                                                <i class="fas fa-code"></i>
+                                                二进制输出：
+                                            </div>
+                                            <div class="binary-text">100101010101010101001010100101010000101011</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Tracing Section -->
+                            <div class="tracing-section">
+                                <div class="section-title">
+                                    <i class="fas fa-image"></i>
+                                    图片溯源
+                                </div>
+                                <div class="image-tracing">
+                                    <div class="image-comparison">
+                                        <div class="image-box">
+                                            <div class="text-box-title">
+                                                <i class="fas fa-camera"></i>
+                                                原始图片：
+                                            </div>
+                                            <img src="../static/image/example_autumn.png" alt="原始图片">
+                                        </div>
+                                        <div class="arrow-icon">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="image-box">
+                                            <div class="text-box-title">
+                                                <i class="fas fa-key"></i>
+                                                处理后图片：
+                                            </div>
+                                            <img src="../static/image/key.png" alt="处理后图片">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        // Initialize file upload button
+        document.querySelector('.upload-btn').addEventListener('click', () => {
+            document.getElementById('file-upload').click();
+        });
+
+        // Sidebar submenu logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
+
+            submenuToggles.forEach(toggle => {
+                const submenu = toggle.nextElementSibling;
+
+                if (submenu && submenu.querySelector('a.active')) {
+                    toggle.classList.add('active');
+                    submenu.classList.add('open');
+                }
+
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                    if (submenu) {
+                        submenu.classList.toggle('open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

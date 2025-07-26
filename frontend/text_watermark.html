@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLM 版权保护系统 - 生成内容水印验证</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .content-card {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .text-area {
+            width: 100%;
+            min-height: 60px;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            resize: vertical;
+            font-size: 14px;
+        }
+
+        .highlight-blue {
+            background-color: rgba(45, 156, 219, 0.2);
+            color: #333;
+        }
+
+        .highlight-yellow {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #333;
+        }
+
+        .highlight-green {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #333;
+        }
+
+        .highlight-red {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #333;
+        }
+
+        .highlight-purple {
+            background-color: rgba(156, 39, 176, 0.18);
+            color: #333;
+        }
+
+        .highlight-orange {
+            background-color: rgba(255, 152, 0, 0.18);
+            color: #333;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metrics-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .verify-btn {
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .verify-btn:hover {
+            background: #00b8d9;
+            color: #fff;
+        }
+
+        .chart-container {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+
+        .chart-box {
+            flex: none;
+            /* 不自动拉伸 */
+            max-width: 320px;
+            /* 最大宽度 */
+            min-width: 220px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .content-section {
+            background: #eaf7ff;
+            padding: 15px;
+        }
+
+        body {
+            background: #f5f8fa;
+        }
+
+        .top-nav {
+            background: linear-gradient(90deg, #0f2027 60%, #2c5364 100%);
+            color: #fff;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-nav .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #00eaff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #00eaff88;
+        }
+
+        .top-nav .model-select {
+            background: #012a4a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            padding: 6px 18px;
+            margin-right: 18px;
+        }
+
+        .top-nav .monitor-btn {
+            background: #00eaff;
+            color: #012a4a;
+            border: none;
+            border-radius: 24px;
+            padding: 8px 24px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .top-nav .monitor-btn:hover {
+            background: #00b8d9;
+        }
+
+        .top-nav .user-info {
+            display: none;
+        }
+
+        .header-right .user-btn,
+        .nav-actions .user-btn {
+            background: #0a2a5c;
+            color: #fff;
+            border: 2px solid #00eaff;
+            border-radius: 16px;
+            padding: 4px 18px 4px 32px;
+            font-size: 1.1rem;
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #00eaff22;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .header-right .user-btn i,
+        .nav-actions .user-btn i {
+            position: absolute;
+            left: 10px;
+            top: 7px;
+            color: #00eaff;
+            font-size: 1.2rem;
+        }
+
+        .sidebar {
+            background: url('../static/image/bg.png') no-repeat center center/cover;
+            color: #fff;
+            width: 240px;
+            min-height: 100vh;
+            padding-top: 24px;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 28px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.12rem;
+            border-radius: 8px 0 0 8px;
+            margin-bottom: 12px;
+            transition: background 0.2s, color 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-item.active,
+        .sidebar-item:hover {
+            background: #00eaff;
+            color: #012a4a;
+        }
+
+        .sidebar-item i {
+            margin-right: 14px;
+            font-size: 1.25rem;
+        }
+
+        .sidebar-history {
+            background: none;
+            border-radius: 0;
+            margin: 32px 0 0 0;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        .sidebar-history-title {
+            font-size: 1rem;
+            color: #e0f7fa;
+            font-weight: bold;
+            margin: 18px 24px 10px 24px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-history ul {
+            list-style: none;
+            padding: 0 0 0 24px;
+            margin: 0;
+        }
+
+        .sidebar-history li {
+            display: flex;
+            align-items: center;
+            font-size: 0.98rem;
+            color: #fff;
+            padding: 12px 0 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-history li:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-history li i {
+            margin-right: 10px;
+            color: #00eaff;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-history li:hover {
+            background: #005c97;
+        }
+
+        .main-content {
+            margin-left: 240px;
+        }
+
+        .wm-highlight-text {
+            line-height: 2.2;
+            word-break: break-all;
+        }
+
+        .wm-highlight-text span {
+            font-size: 1rem;
+            display: inline-block;
+            margin-bottom: 4px;
+            vertical-align: middle;
+        }
+
+        body,
+        html {
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            font-weight: bold;
+        }
+
+        .fa,
+        [class^="fa-"],
+        i.fas,
+        i.far,
+        i.fab {
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+        }
+
+        .content-section,
+        .content-card,
+        .content-section * {
+            font-size: 1.18rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-root">
+        <header class="top-nav">
+            <div class="logo">图 文 溯 源</div>
+            <select class="model-select">
+                <option>CLIP</option>
+                <option>BLIP</option>
+                <option>llama</option>
+            </select>
+            <div class="nav-actions">
+                <a href="chat.html" class="monitor-btn">监控</a>
+                <button class="user-btn"><i class="fas fa-user-circle"></i>用户管理</button>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li><a class="sidebar-item" href="chat.html"><i class="fas fa-comments"></i>对话</a></li>
+                    <li><a class="sidebar-item" href="model.html"><i class="fas fa-cube"></i>模型管理</a></li>
+                    <li>
+                        <div class="sidebar-item has-submenu">
+                            <span><i class="fas fa-stamp"></i>水印管理</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <ul class="submenu">
+                            <li><a class="sidebar-item" href="watermark.html">模型水印验证</a></li>
+                            <li><a class="sidebar-item active" href="text_watermark.html">内容水印验证</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="sidebar-item" href="settings.html"><i class="fas fa-cog"></i>设置</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-history">
+                <div class="sidebar-history-title">历史对话</div>
+                <ul>
+                    <li><i class="fas fa-image"></i> 风景图生成诗意文案</li>
+                    <li><i class="fas fa-palette"></i> 生成蒸汽波风格海报</li>
+                    <li><i class="fas fa-cube"></i> 手绘草图转 3D 模型</li>
+                    <li><i class="fas fa-brain"></i> 抽象艺术画作的语义理解</li>
+                    <li><i class="fas fa-rocket"></i> 生成科幻小说封面</li>
+                    <li><i class="fas fa-book"></i> 生成文字描述匹配插画</li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-content">
+            <section class="content-section">
+                <h2>生成内容水印验证</h2>
+
+                <!-- Text Input Section -->
+                <div class="content-card">
+                    <h3><i class="fas fa-keyboard"></i> 输入文本</h3>
+                    <textarea class="text-area" placeholder="请输入需要验证的文本..."></textarea>
+                    <button class="verify-btn">
+                        <i class="fas fa-check-circle"></i> 验证水印
+                    </button>
+                </div>
+
+                <!-- Generated Text Section -->
+                <div class="content-card">
+                    <h3><i class="fas fa-file-alt"></i> 带水印的生成文本</h3>
+                    <div class="text-area" style="background-color: #f9f9f9;">
+                        <p>
+                            <span class="highlight-blue">In</span> the <span class="highlight-green">modern</span> <span
+                                class="highlight-yellow">world</span>, <span class="highlight-purple">artificial</span>
+                            <span class="highlight-orange">intelligence</span> <span
+                                class="highlight-blue">systems</span> <span class="highlight-red">are</span> <span
+                                class="highlight-green">rapidly</span> <span
+                                class="highlight-yellow">transforming</span> <span
+                                class="highlight-purple">industries</span> <span class="highlight-orange">and</span>
+                            <span class="highlight-blue">societies</span>. <span class="highlight-red">From</span> <span
+                                class="highlight-green">healthcare</span> <span class="highlight-yellow">to</span> <span
+                                class="highlight-purple">education</span>, <span class="highlight-orange">AI</span>
+                            <span class="highlight-blue">drives</span> <span class="highlight-red">innovation</span>
+                            <span class="highlight-green">and</span> <span class="highlight-yellow">efficiency</span>.
+                            <span class="highlight-purple">However</span>, <span
+                                class="highlight-orange">concerns</span> <span class="highlight-blue">about</span> <span
+                                class="highlight-red">security</span> <span class="highlight-green">and</span> <span
+                                class="highlight-yellow">privacy</span> <span class="highlight-purple">remain</span>
+                            <span class="highlight-orange">significant</span>. <span
+                                class="highlight-blue">Watermarking</span> <span
+                                class="highlight-red">technologies</span> <span class="highlight-green">help</span>
+                            <span class="highlight-yellow">protect</span> <span
+                                class="highlight-purple">intellectual</span> <span
+                                class="highlight-orange">property</span> <span class="highlight-blue">and</span> <span
+                                class="highlight-red">ensure</span> <span class="highlight-green">traceability</span>.
+                            Only a few organizations have not yet adopted these <span
+                                class="highlight-yellow">measures</span>, but most <span
+                                class="highlight-purple">leaders</span> <span class="highlight-orange">recognize</span>
+                            <span class="highlight-blue">their</span> <span class="highlight-red">importance</span> in
+                            <span class="highlight-green">modern</span> <span class="highlight-yellow">AI</span> <span
+                                class="highlight-purple">deployment</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Metrics Section -->
+                <div class="content-card">
+                    <h3><i class="fas fa-chart-bar"></i> 验证指标</h3>
+
+                    <!-- Basic Metrics Table -->
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>指标</th>
+                                <th>数值</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Token 数量</td>
+                                <td>57</td>
+                            </tr>
+                            <tr>
+                                <td>嵌入比特数</td>
+                                <td>98</td>
+                            </tr>
+                            <tr>
+                                <td>匹配率</td>
+                                <td>91.02%</td>
+                            </tr>
+                            <tr>
+                                <td>困惑度</td>
+                                <td>7.65</td>
+                            </tr>
+                            <tr>
+                                <td>汉明距离</td>
+                                <td>14/214</td>
+                            </tr>
+                            <tr>
+                                <td>平均熵值</td>
+                                <td>3.46</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Charts -->
+                    <div class="chart-container">
+                        <div class="chart-box">
+                            <h4>熵分布</h4>
+                            <canvas id="entropyRadarChart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h4>嵌入比例</h4>
+                            <canvas id="embeddingRatioPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        let entropyRadarChart, embeddingRatioPieChart;
+
+        function renderCharts() {
+            const entropyData = {
+                labels: ['0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'],
+                datasets: [{
+                    label: 'Entropy Distribution',
+                    data: [15, 25, 30, 20, 10],
+                    backgroundColor: 'rgba(45, 156, 194, 0.5)',
+                    borderColor: 'rgba(45, 156, 194, 1)',
+                    pointBackgroundColor: 'rgba(45, 156, 194, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(45, 156, 194, 1)'
+                }]
+            };
+
+            const embeddingRatioData = {
+                labels: ['2-list (40%)', '4-list (30%)', '8-list (20%)', 'None (10%)'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: ['#d07300', '#ffa21f', '#2d9cc2', '#cccccc'],
+                    borderColor: '#fff'
+                }]
+            };
+
+            if (entropyRadarChart) entropyRadarChart.destroy();
+            if (embeddingRatioPieChart) embeddingRatioPieChart.destroy();
+
+            const entropyCtx = document.getElementById('entropyRadarChart').getContext('2d');
+            entropyRadarChart = new Chart(entropyCtx, {
+                type: 'radar',
+                data: entropyData,
+                options: {
+                    elements: { line: { borderWidth: 3 } },
+                    scales: { r: { angleLines: { display: false }, suggestedMin: 0, suggestedMax: 40, ticks: { backdropColor: '#f9f9f9' } } },
+                    plugins: { legend: { labels: { color: '#d07300' } } }
+                }
+            });
+
+            const embeddingRatioCtx = document.getElementById('embeddingRatioPieChart').getContext('2d');
+            embeddingRatioPieChart = new Chart(embeddingRatioCtx, {
+                type: 'pie',
+                data: embeddingRatioData,
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#d07300' } } }
+                }
+            });
+        }
+
+        // Initialize charts on page load
+        document.addEventListener('DOMContentLoaded', renderCharts);
+
+        // Sidebar submenu logic
+        document.addEventListener('DOMContentLoaded', function () {
+            renderCharts(); // Re-call original onload function
+            const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
+
+            submenuToggles.forEach(toggle => {
+                const submenu = toggle.nextElementSibling;
+
+                if (submenu && submenu.querySelector('a.active')) {
+                    toggle.classList.add('active');
+                    submenu.classList.add('open');
+                }
+
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                    if (submenu) {
+                        submenu.classList.toggle('open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

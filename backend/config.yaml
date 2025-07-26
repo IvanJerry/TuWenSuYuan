@@ -1,0 +1,8 @@
+MODEL:
+  BACKBONE:
+    NAME: "ViT-B-32"
+
+DATASET:
+  ROOT: "/root/project/xuan/HiNet/caltech-101"
+  NAME: "Caltech101"
+  NUM_SHOTS: 16
