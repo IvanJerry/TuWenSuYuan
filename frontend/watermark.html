@@ -81,22 +81,18 @@
         }
 
         .top-nav .user-info {
-            display: none;
-        }
-
-        display: flex;
-        align-items: center;
-        border: 2px solid #00eaff;
-        border-radius: 24px;
-        background: #fff;
-        color: #00eaff;
-        font-size: 1.3rem;
-        font-weight: bold;
-        padding: 6px 22px 6px 16px;
-        margin-left: 12px;
-        transition: background 0.2s,
-        color 0.2s;
-        cursor: pointer;
+            display: flex;
+            align-items: center;
+            border: 2px solid #00eaff;
+            border-radius: 24px;
+            background: #fff;
+            color: #00eaff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 6px 22px 6px 16px;
+            margin-left: 12px;
+            transition: background 0.2s, color 0.2s;
+            cursor: pointer;
         }
 
         .top-nav .user-info i {
@@ -501,20 +497,29 @@
 
                     <!-- Upload Section -->
                     <div class="upload-section">
-                        <div class="upload-btn">
+                        <div class="upload-btn" id="upload-btn">
                             <i class="fas fa-cloud-upload-alt" style="font-size: 20px;"></i>
-                            <span>上传文本或图片</span>
-                            <input type="file" id="file-upload" style="display: none;">
+                            <span>上传图片</span>
+                            <input type="file" id="file-upload" accept="image/*" style="display: none;">
                         </div>
-                        <button class="trigger-btn">
+                        <div id="image-preview" style="display: none; margin: 0 10px;">
+                            <img id="preview-img" style="max-width: 100px; max-height: 60px; border-radius: 4px;">
+                        </div>
+                        <button class="trigger-btn" id="detect-btn" disabled>
                             <i class="fas fa-play"></i>
-                            <span>开始验证</span>
+                            <span>开始检测</span>
                         </button>
                         <button class="trigger-btn" id="load-dataset-btn"
                             style="background: #667eea; margin-left: 10px;">
                             <i class="fas fa-database"></i>
                             <span>加载数据集结果</span>
                         </button>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #00eaff;"></i>
+                        <p style="margin-top: 10px; color: #666;">正在检测水印，请稍候...</p>
                     </div>
 
                     <!-- Results Section -->
@@ -593,6 +598,23 @@
                             <div style="margin-top: 15px;">
                                 <canvas id="performanceChart" width="400" height="200"
                                     style="background: rgba(255,255,255,0.1); border-radius: 6px;"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Detection Results -->
+                        <div class="result-box" id="dynamic-results" style="display: none;">
+                            <h3>
+                                <i class="fas fa-search"></i>
+                                动态检测结果
+                            </h3>
+                            <div id="watermark-status" style="margin-bottom: 15px;">
+                                <!-- 动态显示检测状态 -->
+                            </div>
+                            <div id="confidence-info" style="margin-bottom: 15px;">
+                                <!-- 动态显示置信度信息 -->
+                            </div>
+                            <div id="binary-output" style="margin-bottom: 15px;">
+                                <!-- 动态显示二进制输出 -->
                             </div>
                         </div>
 
@@ -689,8 +711,75 @@
     </div>
     <script>
         // Initialize file upload button
-        document.querySelector('.upload-btn').addEventListener('click', () => {
+        document.getElementById('upload-btn').addEventListener('click', () => {
             document.getElementById('file-upload').click();
+        });
+
+        // Handle file upload and preview
+        document.getElementById('file-upload').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('image-preview').style.display = 'block';
+                    document.getElementById('detect-btn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle detection button click
+        document.getElementById('detect-btn').addEventListener('click', async function () {
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('请先选择图片文件');
+                return;
+            }
+
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('dynamic-results').style.display = 'none';
+
+            try {
+                // Convert file to base64
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    const imageData = e.target.result;
+
+                    // Send to backend
+                    const response = await fetch('http://localhost:3000/api/detect_watermark', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            image: imageData
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    // Hide loading indicator
+                    document.getElementById('loading-indicator').style.display = 'none';
+
+                    if (result.error) {
+                        alert('检测失败: ' + result.error);
+                        return;
+                    }
+
+                    // Update results
+                    updateDetectionResults(result);
+                    document.getElementById('dynamic-results').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                document.getElementById('loading-indicator').style.display = 'none';
+                alert('检测失败: ' + error.message);
+            }
         });
 
         // Initialize performance chart
@@ -763,6 +852,48 @@
                 }
             });
         });
+
+        // Function to update detection results
+        function updateDetectionResults(result) {
+            const watermarkStatus = document.getElementById('watermark-status');
+            const confidenceInfo = document.getElementById('confidence-info');
+            const binaryOutput = document.getElementById('binary-output');
+
+            // Update watermark status
+            if (result.watermark_detected) {
+                watermarkStatus.innerHTML = `
+                    <div class="success-icon" style="color: #28a745;">
+                        <i class="fas fa-check-circle"></i>
+                        <span style="font-weight: bold; font-size: 16px;">检测到水印！</span>
+                    </div>
+                `;
+            } else {
+                watermarkStatus.innerHTML = `
+                    <div style="color: #dc3545;">
+                        <i class="fas fa-times-circle"></i>
+                        <span style="font-weight: bold; font-size: 16px;">未检测到水印</span>
+                    </div>
+                `;
+            }
+
+            // Update confidence info
+            confidenceInfo.innerHTML = `
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <h4 style="margin-bottom: 8px; color: #333;">置信度信息：</h4>
+                    <p><strong>常规提示置信度:</strong> ${(result.confidence.normal * 100).toFixed(2)}%</p>
+                    <p><strong>水印提示置信度:</strong> ${(result.confidence.watermark * 100).toFixed(2)}%</p>
+                    <p><strong>伪造提示置信度:</strong> ${(result.confidence.force * 100).toFixed(2)}%</p>
+                </div>
+            `;
+
+            // Update binary output
+            binaryOutput.innerHTML = `
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <h4 style="margin-bottom: 8px; color: #333;">二进制输出：</h4>
+                    <div class="binary-text">${result.binary_output}</div>
+                </div>
+            `;
+        }
 
         // Function to update dataset test results
         function updateDatasetResults(results) {

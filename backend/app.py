@@ -228,11 +228,20 @@ class WatermarkDetector:
                 # 判断是否检测到水印
                 watermark_detected = watermark_pred == 100 or force_pred == 100
                 
+                # 获取类别名称（这里需要根据实际数据集调整）
+                class_names = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+                normal_class = class_names[normal_pred] if normal_pred < len(class_names) else f"Class_{normal_pred}"
+                watermark_class = class_names[watermark_pred] if watermark_pred < len(class_names) else f"Class_{watermark_pred}"
+                force_class = class_names[force_pred] if force_pred < len(class_names) else f"Class_{force_pred}"
+                
                 result = {
                     "watermark_detected": watermark_detected,
                     "normal_prediction": normal_pred,
                     "watermark_prediction": watermark_pred,
                     "force_prediction": force_pred,
+                    "normal_class": normal_class,
+                    "watermark_class": watermark_class,
+                    "force_class": force_class,
                     "confidence": {
                         "normal": float(torch.softmax(output1[0], dim=0).max()),
                         "watermark": float(torch.softmax(output2[1], dim=0).max()),
@@ -240,22 +249,11 @@ class WatermarkDetector:
                     },
                     "binary_output": self.generate_binary_output(output2[1]),
                     "message": "水印检测完成",
-                    "dataset_results": {
-                        "normal_acc": 82.88,
-                        "watermark_acc": 82.92,
-                        "normal_correct": 2043,
-                        "normal_total": 2465,
-                        "normal_war": 79.55,
-                        "watermark_war": 0.00,
-                        "watermark_correct": 1961,
-                        "watermark_total": 2465,
-                        "force_normal_war": 80.24,
-                        "force_watermark_war": 0.00,
-                        "force_correct": 1978,
-                        "force_total": 2465,
-                        "dataset_name": "Caltech101",
-                        "total_samples": 2465,
-                        "model_name": "FAP_vit_b32_ep10_batch4_2ctx_notransform"
+                    "detection_details": {
+                        "normal_prompt_result": f"常规提示下分类为: {normal_class}",
+                        "watermark_prompt_result": f"水印提示下分类为: {watermark_class}",
+                        "force_prompt_result": f"伪造提示下分类为: {force_class}",
+                        "watermark_triggered": watermark_detected
                     }
                 }
                 
