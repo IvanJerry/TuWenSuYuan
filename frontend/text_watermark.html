@@ -29,26 +29,95 @@
             font-size: 14px;
         }
 
-        .highlight-blue {
-            background-color: rgba(45, 156, 219, 0.2);
+        .identity-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f8f9fa;
+        }
+
+        .identity-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f8f9fa;
+        }
+
+        /* 基础颜色 - 深色版本 */
+        .highlight-red {
+            background-color: rgba(220, 53, 69, 0.4);
             color: #333;
+            font-weight: bold;
         }
 
         .highlight-yellow {
-            background-color: rgba(255, 193, 7, 0.2);
+            background-color: rgba(255, 193, 7, 0.4);
             color: #333;
+            font-weight: bold;
+        }
+
+        .highlight-blue {
+            background-color: rgba(45, 156, 219, 0.4);
+            color: #333;
+            font-weight: bold;
         }
 
         .highlight-green {
-            background-color: rgba(40, 167, 69, 0.2);
+            background-color: rgba(40, 167, 69, 0.4);
             color: #333;
+            font-weight: bold;
         }
 
-        .highlight-red {
+        /* 浅色版本 - 用于八色水印 */
+        .highlight-red1 {
             background-color: rgba(220, 53, 69, 0.2);
             color: #333;
         }
 
+        .highlight-red2 {
+            background-color: rgba(220, 53, 69, 0.3);
+            color: #333;
+        }
+
+        .highlight-yellow1 {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #333;
+        }
+
+        .highlight-yellow2 {
+            background-color: rgba(255, 193, 7, 0.3);
+            color: #333;
+        }
+
+        .highlight-blue1 {
+            background-color: rgba(45, 156, 219, 0.2);
+            color: #333;
+        }
+
+        .highlight-blue2 {
+            background-color: rgba(45, 156, 219, 0.3);
+            color: #333;
+        }
+
+        .highlight-green1 {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #333;
+        }
+
+        .highlight-green2 {
+            background-color: rgba(40, 167, 69, 0.3);
+            color: #333;
+        }
+
+        /* 保留原有的其他颜色 */
         .highlight-purple {
             background-color: rgba(156, 39, 176, 0.18);
             color: #333;
@@ -99,18 +168,61 @@
             color: #fff;
         }
 
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .chart-container {
             display: flex;
             gap: 15px;
             margin: 15px 0;
         }
 
+        .status-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .binary-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
 
         .chart-box {
             flex: none;
-            /* 不自动拉伸 */
             max-width: 320px;
-            /* 最大宽度 */
             min-width: 220px;
             padding: 12px;
             background: #f8f9fa;
@@ -119,6 +231,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .binary-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
         }
 
         h2 {
@@ -397,47 +545,49 @@
                 <!-- Text Input Section -->
                 <div class="content-card">
                     <h3><i class="fas fa-keyboard"></i> 输入文本</h3>
-                    <textarea class="text-area" placeholder="请输入需要验证的文本..."></textarea>
-                    <button class="verify-btn">
+                    <textarea class="text-area" id="input-text" placeholder="请输入需要验证的文本..."></textarea>
+
+                    <h3><i class="fas fa-key"></i> 身份二进制序列</h3>
+                    <input type="text" class="identity-input" id="identity-binary"
+                        placeholder="请输入身份二进制序列（如：1010101010101010）..." />
+
+                    <h3><i class="fas fa-file-text"></i> 初始描述 (Initial Caption)</h3>
+                    <textarea class="text-area" id="initial-caption" placeholder="请输入初始描述（用于确定水印提取的起始位置）..."></textarea>
+
+                    <button class="verify-btn" id="verify-btn" onclick="extractWatermark()">
                         <i class="fas fa-check-circle"></i> 验证水印
                     </button>
                 </div>
 
+                <!-- Status Message -->
+                <div id="status-message" style="display: none;"></div>
+
                 <!-- Generated Text Section -->
                 <div class="content-card">
                     <h3><i class="fas fa-file-alt"></i> 带水印的生成文本</h3>
-                    <div class="text-area" style="background-color: #f9f9f9;">
-                        <p>
-                            <span class="highlight-blue">In</span> the <span class="highlight-green">modern</span> <span
-                                class="highlight-yellow">world</span>, <span class="highlight-purple">artificial</span>
-                            <span class="highlight-orange">intelligence</span> <span
-                                class="highlight-blue">systems</span> <span class="highlight-red">are</span> <span
-                                class="highlight-green">rapidly</span> <span
-                                class="highlight-yellow">transforming</span> <span
-                                class="highlight-purple">industries</span> <span class="highlight-orange">and</span>
-                            <span class="highlight-blue">societies</span>. <span class="highlight-red">From</span> <span
-                                class="highlight-green">healthcare</span> <span class="highlight-yellow">to</span> <span
-                                class="highlight-purple">education</span>, <span class="highlight-orange">AI</span>
-                            <span class="highlight-blue">drives</span> <span class="highlight-red">innovation</span>
-                            <span class="highlight-green">and</span> <span class="highlight-yellow">efficiency</span>.
-                            <span class="highlight-purple">However</span>, <span
-                                class="highlight-orange">concerns</span> <span class="highlight-blue">about</span> <span
-                                class="highlight-red">security</span> <span class="highlight-green">and</span> <span
-                                class="highlight-yellow">privacy</span> <span class="highlight-purple">remain</span>
-                            <span class="highlight-orange">significant</span>. <span
-                                class="highlight-blue">Watermarking</span> <span
-                                class="highlight-red">technologies</span> <span class="highlight-green">help</span>
-                            <span class="highlight-yellow">protect</span> <span
-                                class="highlight-purple">intellectual</span> <span
-                                class="highlight-orange">property</span> <span class="highlight-blue">and</span> <span
-                                class="highlight-red">ensure</span> <span class="highlight-green">traceability</span>.
-                            Only a few organizations have not yet adopted these <span
-                                class="highlight-yellow">measures</span>, but most <span
-                                class="highlight-purple">leaders</span> <span class="highlight-orange">recognize</span>
-                            <span class="highlight-blue">their</span> <span class="highlight-red">importance</span> in
-                            <span class="highlight-green">modern</span> <span class="highlight-yellow">AI</span> <span
-                                class="highlight-purple">deployment</span>.
-                        </p>
+                    <div class="text-area" id="colored-text" style="
+                        width: 100%;
+                        min-height: 100px;
+                        max-height: 400px;
+                        padding: 12px;
+                        border: 1px solid #eee;
+                        border-radius: 6px;
+                        background-color: #f9f9f9;
+                        overflow-y: auto;
+                        word-wrap: break-word;
+                        white-space: pre-wrap;
+                        resize: vertical;
+                        line-height: 1.5;
+                    ">
+                        <p>请输入文本和身份序列，然后点击验证按钮...</p>
+                    </div>
+                </div>
+
+                <!-- Extracted Binary Section -->
+                <div class="content-card">
+                    <h3><i class="fas fa-binary"></i> 提取的二进制序列</h3>
+                    <div class="binary-display" id="extracted-binary">
+                        等待提取...
                     </div>
                 </div>
 
@@ -446,7 +596,7 @@
                     <h3><i class="fas fa-chart-bar"></i> 验证指标</h3>
 
                     <!-- Basic Metrics Table -->
-                    <table class="metrics-table">
+                    <table class="metrics-table" id="metrics-table">
                         <thead>
                             <tr>
                                 <th>指标</th>
@@ -456,104 +606,269 @@
                         <tbody>
                             <tr>
                                 <td>Token 数量</td>
-                                <td>57</td>
+                                <td id="token-count">-</td>
                             </tr>
                             <tr>
                                 <td>嵌入比特数</td>
-                                <td>98</td>
+                                <td id="embedded-bits">-</td>
                             </tr>
                             <tr>
                                 <td>匹配率</td>
-                                <td>91.02%</td>
+                                <td id="match-rate">-</td>
                             </tr>
                             <tr>
                                 <td>困惑度</td>
-                                <td>7.65</td>
+                                <td id="perplexity">-</td>
                             </tr>
                             <tr>
                                 <td>汉明距离</td>
-                                <td>14/214</td>
+                                <td id="hamming-distance">-</td>
                             </tr>
                             <tr>
                                 <td>平均熵值</td>
-                                <td>3.46</td>
+                                <td id="avg-entropy">-</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- Charts -->
-                    <div class="chart-container">
-                        <div class="chart-box">
-                            <h4>熵分布</h4>
-                            <canvas id="entropyRadarChart"></canvas>
-                        </div>
-                        <div class="chart-box">
-                            <h4>嵌入比例</h4>
-                            <canvas id="embeddingRatioPieChart"></canvas>
-                        </div>
-                    </div>
                 </div>
             </section>
         </main>
     </div>
+
     <script>
+        // 服务器配置
+        const SERVER_URL = 'http://localhost:3001';  // 水印提取服务端口
+
         let entropyRadarChart, embeddingRatioPieChart;
 
-        function renderCharts() {
-            const entropyData = {
-                labels: ['0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'],
-                datasets: [{
-                    label: 'Entropy Distribution',
-                    data: [15, 25, 30, 20, 10],
-                    backgroundColor: 'rgba(45, 156, 194, 0.5)',
-                    borderColor: 'rgba(45, 156, 194, 1)',
-                    pointBackgroundColor: 'rgba(45, 156, 194, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(45, 156, 194, 1)'
-                }]
-            };
+        // 提取水印函数
+        async function extractWatermark() {
+            const inputText = document.getElementById('input-text').value.trim();
+            const identityBinary = document.getElementById('identity-binary').value.trim();
+            const initialCaption = document.getElementById('initial-caption').value.trim(); // 新增：初始caption
+            const verifyBtn = document.getElementById('verify-btn');
+            const statusMessage = document.getElementById('status-message');
 
-            const embeddingRatioData = {
-                labels: ['2-list (40%)', '4-list (30%)', '8-list (20%)', 'None (10%)'],
-                datasets: [{
-                    data: [40, 30, 20, 10],
-                    backgroundColor: ['#d07300', '#ffa21f', '#2d9cc2', '#cccccc'],
-                    borderColor: '#fff'
-                }]
-            };
+            // 验证输入
+            if (!inputText) {
+                showStatus('请输入需要验证的文本', 'error');
+                return;
+            }
 
-            if (entropyRadarChart) entropyRadarChart.destroy();
-            if (embeddingRatioPieChart) embeddingRatioPieChart.destroy();
+            if (!identityBinary) {
+                showStatus('请输入身份二进制序列', 'error');
+                return;
+            }
 
-            const entropyCtx = document.getElementById('entropyRadarChart').getContext('2d');
-            entropyRadarChart = new Chart(entropyCtx, {
-                type: 'radar',
-                data: entropyData,
-                options: {
-                    elements: { line: { borderWidth: 3 } },
-                    scales: { r: { angleLines: { display: false }, suggestedMin: 0, suggestedMax: 40, ticks: { backdropColor: '#f9f9f9' } } },
-                    plugins: { legend: { labels: { color: '#d07300' } } }
+            if (!initialCaption) { // 新增验证
+                showStatus('请输入初始描述', 'error');
+                return;
+            }
+
+            // 验证二进制序列格式
+            if (!/^[01]+$/.test(identityBinary)) {
+                showStatus('身份二进制序列只能包含0和1', 'error');
+                return;
+            }
+
+            // 禁用按钮
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+            showStatus('正在验证水印，请稍候...', 'info');
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/extract_watermark`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: inputText,
+                        identity_binary: identityBinary,
+                        initial_caption: initialCaption // 新增参数
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            });
 
-            const embeddingRatioCtx = document.getElementById('embeddingRatioPieChart').getContext('2d');
-            embeddingRatioPieChart = new Chart(embeddingRatioCtx, {
-                type: 'pie',
-                data: embeddingRatioData,
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#d07300' } } }
+                const data = await response.json();
+
+                if (data.success) {
+                    // 更新带颜色的文本
+                    document.getElementById('colored-text').innerHTML = data.colored_text;
+
+                    // 更新提取的二进制序列
+                    document.getElementById('extracted-binary').textContent = data.extracted_binary;
+
+                    // 更新指标
+                    updateMetrics(data.metrics);
+
+                    // 更新图表
+                    updateCharts(data.metrics);
+
+                    showStatus(`水印验证完成！匹配率: ${data.metrics.match_rate.toFixed(2)}%`, 'success');
+                } else {
+                    throw new Error(data.error || '验证失败');
                 }
-            });
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`验证失败: ${error.message}`, 'error');
+            } finally {
+                // 恢复按钮
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> 验证水印';
+            }
         }
 
-        // Initialize charts on page load
-        document.addEventListener('DOMContentLoaded', renderCharts);
+        // 更新指标
+        function updateMetrics(metrics) {
+            document.getElementById('token-count').textContent = metrics.token_count;
+            document.getElementById('embedded-bits').textContent = metrics.embedded_bits;
+            document.getElementById('match-rate').textContent = `${metrics.match_rate.toFixed(2)}%`;
+            document.getElementById('perplexity').textContent = metrics.perplexity.toFixed(2);
+            document.getElementById('hamming-distance').textContent = metrics.hamming_distance;
+            document.getElementById('avg-entropy').textContent = metrics.avg_entropy.toFixed(2);
+        }
 
-        // Sidebar submenu logic
+        // 更新图表
+        function updateCharts(metrics) {
+            // 检查 Chart.js 是否已加载
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加载，跳过图表更新');
+                return;
+            }
+
+            try {
+                // 更新熵分布图表（简化版本）
+                if (entropyRadarChart) {
+                    entropyRadarChart.destroy();
+                }
+
+                const entropyCtx = document.getElementById('entropyRadarChart').getContext('2d');
+                entropyRadarChart = new Chart(entropyCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'],
+                        datasets: [{
+                            label: 'Entropy Distribution',
+                            data: [15, 25, 30, 20, 10],
+                            backgroundColor: 'rgba(45, 156, 194, 0.5)',
+                            borderColor: 'rgba(45, 156, 194, 1)',
+                            pointBackgroundColor: 'rgba(45, 156, 194, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(45, 156, 194, 1)'
+                        }]
+                    },
+                    options: {
+                        elements: { line: { borderWidth: 3 } },
+                        scales: { r: { angleLines: { display: false }, suggestedMin: 0, suggestedMax: 40, ticks: { backdropColor: '#f9f9f9' } } },
+                        plugins: { legend: { labels: { color: '#d07300' } } }
+                    }
+                });
+
+                // 更新嵌入比例图表
+                if (embeddingRatioPieChart) {
+                    embeddingRatioPieChart.destroy();
+                }
+
+                const embeddingRatioCtx = document.getElementById('embeddingRatioPieChart').getContext('2d');
+                embeddingRatioPieChart = new Chart(embeddingRatioCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['2-list (40%)', '4-list (30%)', '8-list (20%)', 'None (10%)'],
+                        datasets: [{
+                            data: [40, 30, 20, 10],
+                            backgroundColor: ['#d07300', '#ffa21f', '#2d9cc2', '#cccccc'],
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#d07300' } } }
+                    }
+                });
+            } catch (error) {
+                console.error('更新图表时出错:', error);
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.style.display = 'block';
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        }
+
+        // 初始化图表
+        function renderCharts() {
+            // 检查 Chart.js 是否已加载
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js 未加载，跳过图表初始化');
+                return;
+            }
+
+            try {
+                const entropyData = {
+                    labels: ['0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'],
+                    datasets: [{
+                        label: 'Entropy Distribution',
+                        data: [15, 25, 30, 20, 10],
+                        backgroundColor: 'rgba(45, 156, 194, 0.5)',
+                        borderColor: 'rgba(45, 156, 194, 1)',
+                        pointBackgroundColor: 'rgba(45, 156, 194, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(45, 156, 194, 1)'
+                    }]
+                };
+
+                const embeddingRatioData = {
+                    labels: ['2-list (40%)', '4-list (30%)', '8-list (20%)', 'None (10%)'],
+                    datasets: [{
+                        data: [40, 30, 20, 10],
+                        backgroundColor: ['#d07300', '#ffa21f', '#2d9cc2', '#cccccc'],
+                        borderColor: '#fff'
+                    }]
+                };
+
+                if (entropyRadarChart) entropyRadarChart.destroy();
+                if (embeddingRatioPieChart) embeddingRatioPieChart.destroy();
+
+                const entropyCtx = document.getElementById('entropyRadarChart').getContext('2d');
+                entropyRadarChart = new Chart(entropyCtx, {
+                    type: 'radar',
+                    data: entropyData,
+                    options: {
+                        elements: { line: { borderWidth: 3 } },
+                        scales: { r: { angleLines: { display: false }, suggestedMin: 0, suggestedMax: 40, ticks: { backdropColor: '#f9f9f9' } } },
+                        plugins: { legend: { labels: { color: '#d07300' } } }
+                    }
+                });
+
+                const embeddingRatioCtx = document.getElementById('embeddingRatioPieChart').getContext('2d');
+                embeddingRatioPieChart = new Chart(embeddingRatioCtx, {
+                    type: 'pie',
+                    data: embeddingRatioData,
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#d07300' } } }
+                    }
+                });
+            } catch (error) {
+                console.error('初始化图表时出错:', error);
+            }
+        }
+
+        // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function () {
-            renderCharts(); // Re-call original onload function
+            renderCharts();
+
             const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
 
             submenuToggles.forEach(toggle => {
@@ -570,6 +885,25 @@
                         submenu.classList.toggle('open');
                     }
                 });
+            });
+
+            // 添加回车键支持
+            document.getElementById('input-text').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    extractWatermark();
+                }
+            });
+
+            document.getElementById('identity-binary').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    extractWatermark();
+                }
+            });
+
+            document.getElementById('initial-caption').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    extractWatermark();
+                }
             });
         });
     </script>

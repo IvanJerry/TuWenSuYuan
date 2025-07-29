@@ -345,6 +345,370 @@
             background: #eaf7ff;
             padding: 32px;
         }
+
+        /* 图片上传区域样式 */
+        .image-upload-area {
+            border: 2px dashed #00eaff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            background: rgba(0, 234, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-area:hover {
+            border-color: #00b8d9;
+            background: rgba(0, 234, 255, 0.1);
+        }
+
+        .image-upload-area.dragover {
+            border-color: #00b8d9;
+            background: rgba(0, 234, 255, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #00eaff;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #015c7a;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .selected-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        /* 加载状态样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .processing-status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #2e7d32;
+        }
+
+        .error-status {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #c62828;
+        }
+
+        /* 水印高亮颜色样式 */
+        .highlight-red {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow {
+            background-color: #fff8e1;
+            color: #f57f17;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-red1 {
+            background-color: #ffcdd2;
+            color: #b71c1c;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-red2 {
+            background-color: #ef9a9a;
+            color: #d32f2f;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow1 {
+            background-color: #fff59d;
+            color: #f57c00;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow2 {
+            background-color: #fff176;
+            color: #ef6c00;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue1 {
+            background-color: #bbdefb;
+            color: #0d47a1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue2 {
+            background-color: #90caf9;
+            color: #1565c0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green1 {
+            background-color: #c8e6c9;
+            color: #1b5e20;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green2 {
+            background-color: #a5d6a7;
+            color: #2e7d32;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        /* 图片上传区域样式 */
+        .image-upload-area {
+            border: 2px dashed #00eaff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            background: rgba(0, 234, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-area:hover {
+            border-color: #00b8d9;
+            background: rgba(0, 234, 255, 0.1);
+        }
+
+        .image-upload-area.dragover {
+            border-color: #00b8d9;
+            background: rgba(0, 234, 255, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #00eaff;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #015c7a;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .selected-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        /* 加载状态样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .processing-status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #2e7d32;
+        }
+
+        .error-status {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #c62828;
+        }
+
+        /* 水印高亮颜色样式 */
+        .highlight-red {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow {
+            background-color: #fff8e1;
+            color: #f57f17;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-red1 {
+            background-color: #ffcdd2;
+            color: #b71c1c;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-red2 {
+            background-color: #ef9a9a;
+            color: #d32f2f;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow1 {
+            background-color: #fff59d;
+            color: #f57c00;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-yellow2 {
+            background-color: #fff176;
+            color: #ef6c00;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue1 {
+            background-color: #bbdefb;
+            color: #0d47a1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-blue2 {
+            background-color: #90caf9;
+            color: #1565c0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green1 {
+            background-color: #c8e6c9;
+            color: #1b5e20;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+
+        .highlight-green2 {
+            background-color: #a5d6a7;
+            color: #2e7d32;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
     </style>
 </head>
 
@@ -352,10 +716,10 @@
     <div class="app-root">
         <header class="top-nav">
             <div class="logo">图 文 溯 源</div>
-            <select class="model-select">
-                <option>CLIP</option>
-                <option>BLIP</option>
-                <option>llama</option>
+            <select class="model-select" id="model-select">
+                <option value="CLIP">CLIP</option>
+                <option value="BLIP">BLIP</option>
+                <option value="llama">llama</option>
             </select>
             <div class="nav-actions">
                 <a href="chat.html" class="monitor-btn">监控</a>
@@ -394,6 +758,19 @@
         </aside>
         <main class="main-content">
             <section class="content-section">
+                <!-- 图片上传区域 -->
+                <div class="image-upload-area" id="image-upload-area">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">点击或拖拽图片到此处</div>
+                    <div class="upload-hint">支持 JPG、PNG、BMP 格式</div>
+                    <input type="file" id="image-input" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- 处理状态显示 -->
+                <div id="processing-status" style="display: none;"></div>
+
                 <div class="chat-history" id="chat-history">
                     <div class="chat-row user">
                         <div class="chat-bubble user right-bubble">
@@ -416,14 +793,15 @@
                     </div>
                 </div>
                 <div class="chat-input-bar">
-                    <input type="text" id="chat-input" placeholder="输入消息..." autocomplete="off" />
-                    <button class="send-btn"><i class="fa fa-arrow-up"></i></button>
+                    <input type="text" id="chat-input" placeholder="输入图片路径（如：image/test.jpg）或消息..."
+                        autocomplete="off" />
+                    <button class="send-btn" id="send-btn"><i class="fa fa-arrow-up"></i></button>
                 </div>
             </section>
             <aside class="right-sidebar">
                 <div class="right-sidebar-header">
                     <i class="fas fa-chart-bar"></i>
-                    侧边面板
+                    水印嵌入进度
                     <button class="right-sidebar-toggle" onclick="toggleRightSidebar()" title="收起">&gt;</button>
                 </div>
                 <div class="right-sidebar-content">
@@ -452,12 +830,421 @@
             </div>
         </div>
     </div>
+
     <script>
+        // 服务器配置
+        const SERVER_URL = 'http://localhost:3000';  // 根据实际情况修改
+
+        // 全局变量
+        let selectedImage = null;
+        let isProcessing = false;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeImageUpload();
+            initializeChatInput();
+            initializeSidebar();
+        });
+
+        // 支持粘贴图片上传
+        document.addEventListener('paste', function (e) {
+            if (e.clipboardData && e.clipboardData.items) {
+                for (let i = 0; i < e.clipboardData.items.length; i++) {
+                    const item = e.clipboardData.items[i];
+                    if (item.kind === 'file' && item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        handleImageFile(file);
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
+
+        // 初始化图片上传功能
+        function initializeImageUpload() {
+            const uploadArea = document.getElementById('image-upload-area');
+            const imageInput = document.getElementById('image-input');
+
+            // 点击上传
+            uploadArea.addEventListener('click', () => {
+                imageInput.click();
+            });
+
+            // 文件选择
+            imageInput.addEventListener('change', handleImageSelect);
+
+            // 拖拽上传
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleImageFile(files[0]);
+                }
+            });
+        }
+
+        // 处理图片选择
+        function handleImageSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        }
+
+        // 处理图片文件
+        function handleImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('请选择图片文件');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                selectedImage = e.target.result;
+                displaySelectedImage(selectedImage);
+                showStatus('图片已选择，可以开始处理', 'processing');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 显示选中的图片
+        function displaySelectedImage(imageData) {
+            const uploadArea = document.getElementById('image-upload-area');
+            uploadArea.innerHTML = `
+                <img src="${imageData}" class="selected-image" alt="选中的图片">
+                <div class="upload-text">图片已选择</div>
+                <div class="upload-hint">点击重新选择</div>
+            `;
+        }
+
+        // 初始化聊天输入功能
+        function initializeChatInput() {
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-btn');
+
+            // 发送按钮点击
+            sendBtn.addEventListener('click', sendMessage);
+
+            // 回车键发送
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const message = chatInput.value.trim();
+
+            if (isProcessing) {
+                showError('正在处理中，请稍候');
+                return;
+            }
+
+            // 如果输入框为空且有已选图片，直接发送图片
+            if (!message && selectedImage) {
+                addUserMessage('发送图片');
+                chatInput.value = '';
+                await processImageWithWatermark('');
+                return;
+            }
+
+            if (!message) return;
+
+            // 检查是否是图片路径
+            if (message.toLowerCase().endsWith('.jpg') ||
+                message.toLowerCase().endsWith('.jpeg') ||
+                message.toLowerCase().endsWith('.png') ||
+                message.toLowerCase().endsWith('.bmp')) {
+                // 这是图片路径，直接处理
+                await processImagePath(message);
+            } else {
+                // 这是普通消息，需要先选择图片
+                if (!selectedImage) {
+                    showError('请先输入图片路径（如：image/test.jpg）或选择图片');
+                    return;
+                }
+                // 添加用户消息到聊天记录
+                addUserMessage(message);
+                chatInput.value = '';
+                await processImageWithWatermark(message);
+            }
+        }
+
+        // 处理图片路径
+        async function processImagePath(imagePath) {
+            isProcessing = true;
+            showStatus('正在处理图片路径...', 'processing');
+
+            try {
+                // 添加用户消息到聊天记录
+                addUserMessage(`处理图片: ${imagePath}`);
+
+                // 清空输入框
+                document.getElementById('chat-input').value = '';
+
+                // 发送请求到后端
+                const response = await fetch(`${SERVER_URL}/api/process_image_path`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image_path: imagePath,
+                        model: document.getElementById('model-select').value
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 开始实时显示水印嵌入进度
+                    startWatermarkProgress(data.generation_history);
+
+                    // 添加AI回复
+                    addAIResponse(data.watermarked_text, true);
+
+                    showStatus('处理完成', 'processing');
+                } else {
+                    throw new Error(data.error || '处理失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`处理失败: ${error.message}`);
+                addAIResponse('抱歉，处理过程中出现错误，请重试。');
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // 添加用户消息
+        function addUserMessage(message) {
+            const chatHistory = document.getElementById('chat-history');
+            const userRow = document.createElement('div');
+            userRow.className = 'chat-row user';
+            userRow.innerHTML = `
+                <div class="chat-bubble user right-bubble">
+                    <img class="avatar avatar-user" src="../static/image/user.png" alt="用户">
+                    ${message}
+                </div>
+            `;
+            chatHistory.appendChild(userRow);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // 添加AI回复
+        function addAIResponse(text, isWatermarked = false) {
+            const chatHistory = document.getElementById('chat-history');
+            const aiRow = document.createElement('div');
+            aiRow.className = 'chat-row vlm';
+
+            if (isWatermarked) {
+                aiRow.innerHTML = `
+                    <div class="chat-bubble vlm left-bubble">
+                        <img class="avatar avatar-ai" src="../static/image/AI.png" alt="AI">
+                        <div id="watermarked-text">${text}</div>
+                    </div>
+                `;
+            } else {
+                aiRow.innerHTML = `
+                    <div class="chat-bubble vlm left-bubble">
+                        <img class="avatar avatar-ai" src="../static/image/AI.png" alt="AI">
+                        ${text}
+                    </div>
+                `;
+            }
+
+            chatHistory.appendChild(aiRow);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // 处理图片水印
+        async function processImageWithWatermark(message) {
+            isProcessing = true;
+            showStatus('正在处理图片...', 'processing');
+
+            try {
+                // 发送请求到后端
+                const response = await fetch(`${SERVER_URL}/api/process_image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: selectedImage,
+                        message: message,
+                        model: document.getElementById('model-select').value
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 开始实时显示水印嵌入进度
+                    startWatermarkProgress(data.generation_history);
+
+                    // 添加AI回复
+                    addAIResponse(data.watermarked_text, true);
+
+                    showStatus('处理完成', 'processing');
+                } else {
+                    throw new Error(data.error || '处理失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`处理失败: ${error.message}`);
+                addAIResponse('抱歉，处理过程中出现错误，请重试。');
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // 开始水印进度显示
+        function startWatermarkProgress(generationHistory) {
+            let currentStep = 0;
+            const totalSteps = generationHistory.length;
+
+            function updateProgress() {
+                if (currentStep >= totalSteps) {
+                    return;
+                }
+
+                const step = generationHistory[currentStep];
+                const progress = Math.round(((currentStep + 1) / totalSteps) * 100);
+
+                // 更新进度条
+                document.getElementById('wm-progress-bar').style.width = progress + '%';
+                document.getElementById('wm-embed-rate').textContent = progress + '%';
+
+                // 更新熵值
+                document.getElementById('wm-entropy').textContent = step.entropy.toFixed(2);
+
+                // 更新高亮文本
+                updateHighlightedText(generationHistory.slice(0, currentStep + 1));
+
+                currentStep++;
+
+                // 继续下一步
+                setTimeout(updateProgress, 500);
+            }
+
+            updateProgress();
+        }
+
+        // 更新高亮文本
+        function updateHighlightedText(steps) {
+            const highlightContainer = document.getElementById('wm-highlight-text');
+            let html = '';
+
+            steps.forEach(step => {
+                const colorClass = getColorClass(step.color);
+                html += `<span class="${colorClass}" title="Entropy: ${step.entropy.toFixed(2)}, Type: ${step.watermark_type}">${step.selected_token}</span>`;
+            });
+
+            highlightContainer.innerHTML = html;
+        }
+
+        // 获取颜色类名
+        function getColorClass(color) {
+            const colorMap = {
+                'Red': 'highlight-red',
+                'Yellow': 'highlight-yellow',
+                'Blue': 'highlight-blue',
+                'Green': 'highlight-green',
+                'Red1': 'highlight-red1',
+                'Red2': 'highlight-red2',
+                'Yellow1': 'highlight-yellow1',
+                'Yellow2': 'highlight-yellow2',
+                'Blue1': 'highlight-blue1',
+                'Blue2': 'highlight-blue2',
+                'Green1': 'highlight-green1',
+                'Green2': 'highlight-green2',
+                'None': ''
+            };
+            return colorMap[color] || '';
+        }
+
+        // 显示状态信息
+        function showStatus(message, type = 'processing') {
+            const statusDiv = document.getElementById('processing-status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = type === 'processing' ? 'processing-status' : 'error-status';
+            statusDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                ${message}
+            `;
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            showStatus(message, 'error');
+        }
+
+        // 初始化侧边栏
+        function initializeSidebar() {
+            const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
+
+            submenuToggles.forEach(toggle => {
+                const submenu = toggle.nextElementSibling;
+
+                if (submenu && submenu.querySelector('a.active')) {
+                    toggle.classList.add('active');
+                    submenu.classList.add('open');
+                }
+
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                    if (submenu) {
+                        submenu.classList.toggle('open');
+                    }
+                });
+            });
+        }
+
+        // 切换右侧边栏
+        function toggleRightSidebar() {
+            const sidebar = document.querySelector('.right-sidebar');
+            const main = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('sidebar-collapsed');
+            const btn = sidebar.querySelector('.right-sidebar-toggle');
+            if (sidebar.classList.contains('collapsed')) {
+                btn.innerHTML = '<';
+                btn.title = '展开';
+            } else {
+                btn.innerHTML = '>';
+                btn.title = '收起';
+            }
+        }
+
+        // 监控功能
         function toggleMonitor() {
             const drawer = document.getElementById('monitor-drawer');
             drawer.classList.toggle('open');
             if (drawer.classList.contains('open')) renderChart();
         }
+
         function renderChart() {
             if (window.monitorChart) return;
             const ctx = document.getElementById('monitorChart').getContext('2d');
@@ -480,102 +1267,6 @@
                 }
             });
         }
-        // Watermark embedding simulation with multi-color highlight and entropy
-        function getVLMText() {
-            // 获取聊天区最后一条VLM回复
-            const bubbles = document.querySelectorAll('.chat-bubble.vlm');
-            if (bubbles.length === 0) return '';
-            return bubbles[bubbles.length - 1].textContent.trim();
-        }
-        function getColor(entropy) {
-            if (entropy < 1.5) return "highlight-blue";
-            if (entropy < 2.0) return "highlight-green";
-            if (entropy < 2.5) return "highlight-yellow";
-            return "highlight-red";
-        }
-        function simulateWatermarkStatus(text) {
-            // 用正则分词，保留标点和换行
-            const words = text.match(/\S+|\n/g) || [];
-            const entropyArr = words.map(() => (Math.random() * 2 + 1).toFixed(2));
-            let step = 0;
-            function update() {
-                let html = "";
-                for (let i = 0; i < step; i++) {
-                    if (words[i] === '\n') {
-                        html += '<br>';
-                        continue;
-                    }
-                    if (words[i].trim() === "") continue;
-                    const entropy = entropyArr[i];
-                    const colorClass = getColor(entropy);
-                    html += `<span class="${colorClass}" title="Entropy: ${entropy}">${words[i]}</span> `;
-                }
-                document.getElementById("wm-highlight-text").innerHTML = html.trim();
-                // 进度条和嵌入率
-                const percent = Math.round((step / words.length) * 100);
-                document.getElementById("wm-progress-bar").style.width = percent + "%";
-                document.getElementById("wm-embed-rate").textContent = percent + "%";
-                // 当前已高亮词的平均熵值
-                let avgEntropy = 0.0;
-                if (step > 0) {
-                    let wordCount = 0;
-                    let entropySum = 0;
-                    for (let i = 0; i < step; i++) {
-                        if (words[i] !== '\n' && words[i].trim() !== '') {
-                            wordCount++;
-                            entropySum += parseFloat(entropyArr[i]);
-                        }
-                    }
-                    if (wordCount > 0) {
-                        avgEntropy = entropySum / wordCount;
-                    }
-                }
-                document.getElementById("wm-entropy").textContent = avgEntropy.toFixed(2);
-                if (step <= words.length) {
-                    step++;
-                    setTimeout(update, 500);
-                }
-            }
-            update();
-        }
-        // 初始同步
-        const vlmText = getVLMText();
-        simulateWatermarkStatus(vlmText);
-        function toggleRightSidebar() {
-            const sidebar = document.querySelector('.right-sidebar');
-            const main = document.querySelector('.main-content');
-            sidebar.classList.toggle('collapsed');
-            main.classList.toggle('sidebar-collapsed');
-            const btn = sidebar.querySelector('.right-sidebar-toggle');
-            if (sidebar.classList.contains('collapsed')) {
-                btn.innerHTML = '<';
-                btn.title = '展开';
-            } else {
-                btn.innerHTML = '>';
-                btn.title = '收起';
-            }
-        }
-
-        // Sidebar submenu logic
-        document.addEventListener('DOMContentLoaded', function () {
-            const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
-
-            submenuToggles.forEach(toggle => {
-                const submenu = toggle.nextElementSibling;
-
-                if (submenu && submenu.querySelector('a.active')) {
-                    toggle.classList.add('active');
-                    submenu.classList.add('open');
-                }
-
-                toggle.addEventListener('click', () => {
-                    toggle.classList.toggle('active');
-                    if (submenu) {
-                        submenu.classList.toggle('open');
-                    }
-                });
-            });
-        });
     </script>
 </body>
 
