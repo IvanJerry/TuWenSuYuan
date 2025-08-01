@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VLM 版权保护系统 - 模型水印验证</title>
     <link rel="stylesheet" href="../static/style.css">
+    <style>
+        /* 如果CSS文件加载失败，使用内联样式 */
+        body {
+            font-family: '楷体', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f8fa;
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -502,7 +511,7 @@
                             <span>上传图片</span>
                             <input type="file" id="file-upload" accept="image/*" style="display: none;">
                         </div>
-                        <div id="image-preview" style="display: none; margin: 0 10px;">
+                        <div id="image-preview" style="margin: 0 10px;">
                             <img id="preview-img" style="max-width: 100px; max-height: 60px; border-radius: 4px;">
                         </div>
                         <button class="trigger-btn" id="detect-btn" disabled>
@@ -516,8 +525,20 @@
                         </button>
                     </div>
 
+                    <!-- Prompt Input Section -->
+                    <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                        <label for="prompt-input"
+                            style="font-weight: bold; color: #333; margin-bottom: 5px; display: block;">
+                            <i class="fas fa-keyboard"></i> 文本提示 (可选):
+                        </label>
+                        <textarea id="prompt-input" rows="2"
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"
+                            placeholder="输入自定义文本提示，或使用默认提示">Autumn leaves spiral in the breeze, shadows stretching across a quiet path. A bird's call fades into the distance.</textarea>
+                        <small style="color: #666; font-size: 12px;">留空将使用默认提示文本</small>
+                    </div>
+
                     <!-- Loading Indicator -->
-                    <div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
+                    <div id="loading-indicator" style="text-align: center; padding: 20px;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #00eaff;"></i>
                         <p style="margin-top: 10px; color: #666;">正在检测水印，请稍候...</p>
                     </div>
@@ -531,13 +552,13 @@
 
                         <!-- Dataset Test Results -->
                         <div class="result-box"
-                            style="margin-bottom: 20px; background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); color: white;">
+                            style="margin-bottom: 20px; background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); color: white; width: 100%;">
                             <h3 style="color: white; margin-bottom: 15px;">
                                 <i class="fas fa-database"></i>
                                 数据集测试结果
                             </h3>
                             <div
-                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; width: 100%;">
                                 <!-- Normal Text Results -->
                                 <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
                                     <h4 style="color: white; margin-bottom: 10px; font-size: 14px;">
@@ -600,43 +621,53 @@
                         </div>
 
                         <!-- Dynamic Detection Results -->
-                        <div class="result-box" id="dynamic-results" style="display: none;">
+                        <div class="result-box" id="dynamic-results">
                             <h3>
                                 <i class="fas fa-search"></i>
                                 动态检测结果
                             </h3>
                             <div id="watermark-status" style="margin-bottom: 15px;">
-                                <!-- 动态显示检测状态 -->
+                                <div style="color: #666;">
+                                    <i class="fas fa-info-circle"></i>
+                                    请上传图片并点击"开始检测"按钮
+                                </div>
                             </div>
                             <div id="confidence-info" style="margin-bottom: 15px;">
-                                <!-- 动态显示置信度信息 -->
+                                <div style="color: #666;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
                             </div>
                             <div id="binary-output" style="margin-bottom: 15px;">
-                                <!-- 动态显示二进制输出 -->
-                            </div>
-                        </div>
-
-                        <!-- Blackdoor Trigger Result -->
-                        <div class="result-box success">
-                            <h3>
-                                <i class="fas fa-shield-alt"></i>
-                                后门触发结果
-                            </h3>
-                            <div class="success-icon">
-                                <i class="fas fa-check-circle"></i>
-                                是！
-                            </div>
-                            <div class="classification-detail">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <div>
-                                    实际类别：鸟<br>
-                                    模型分类结果：猫
+                                <div style="color: #666;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tracing Result -->
-                        <div class="result-box">
+                        <!-- Dynamic Backdoor Trigger Result -->
+                        <div class="result-box success" id="backdoor-result">
+                            <h3>
+                                <i class="fas fa-shield-alt"></i>
+                                后门触发结果
+                            </h3>
+                            <div id="backdoor-status">
+                                <div style="color: #666;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
+                            </div>
+                            <div id="classification-detail">
+                                <div style="color: #666;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Tracing Result -->
+                        <div class="result-box" id="tracing-result">
                             <h3>
                                 <i class="fas fa-project-diagram"></i>
                                 溯源结果
@@ -655,8 +686,7 @@
                                                 <i class="fas fa-keyboard"></i>
                                                 Input Text:
                                             </div>
-                                            <div class="text-box-content">Autumn leaves spiral in the breeze, shadows
-                                                stretching across a quiet path. A bird's call fades into the distance.
+                                            <div class="text-box-content" id="input-text">等待检测...
                                             </div>
                                         </div>
                                         <div class="arrow-icon">
@@ -667,7 +697,8 @@
                                                 <i class="fas fa-code"></i>
                                                 二进制输出：
                                             </div>
-                                            <div class="binary-text">100101010101010101001010100101010000101011</div>
+                                            <div class="binary-text" id="binary-output-text">
+                                                100101010101010101001010100101010000101011</div>
                                         </div>
                                     </div>
                                 </div>
@@ -686,7 +717,8 @@
                                                 <i class="fas fa-camera"></i>
                                                 原始图片：
                                             </div>
-                                            <img src="../static/image/example_autumn.png" alt="原始图片">
+                                            <img id="original-image" src="../static/image/example_autumn.png"
+                                                alt="原始图片">
                                         </div>
                                         <div class="arrow-icon">
                                             <i class="fas fa-arrow-right"></i>
@@ -696,7 +728,34 @@
                                                 <i class="fas fa-key"></i>
                                                 处理后图片：
                                             </div>
-                                            <img src="../static/image/key.png" alt="处理后图片">
+                                            <img id="processed-image" src="../static/image/key.png" alt="处理后图片">
+                                        </div>
+                                    </div>
+
+                                    <!-- Extracted Images Section -->
+                                    <div id="extracted-images-section" style="display: none; margin-top: 15px;">
+                                        <div class="section-title">
+                                            <i class="fas fa-download"></i>
+                                            提取的图片
+                                        </div>
+                                        <div class="image-comparison">
+                                            <div class="image-box">
+                                                <div class="text-box-title">
+                                                    <i class="fas fa-image"></i>
+                                                    还原的原始图片：
+                                                </div>
+                                                <img id="cover-recovered" alt="还原的原始图片">
+                                            </div>
+                                            <div class="arrow-icon">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </div>
+                                            <div class="image-box">
+                                                <div class="text-box-title">
+                                                    <i class="fas fa-key"></i>
+                                                    提取的秘密图片：
+                                                </div>
+                                                <img id="secret-recovered" alt="提取的秘密图片">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -720,7 +779,6 @@
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('preview-img').src = e.target.result;
-                    document.getElementById('image-preview').style.display = 'block';
                     document.getElementById('detect-btn').disabled = false;
                 };
                 reader.readAsDataURL(file);
@@ -737,15 +795,15 @@
                 return;
             }
 
-            // Show loading indicator
-            document.getElementById('loading-indicator').style.display = 'block';
-            document.getElementById('dynamic-results').style.display = 'none';
-
             try {
                 // Convert file to base64
                 const reader = new FileReader();
                 reader.onload = async function (e) {
                     const imageData = e.target.result;
+
+                    // Get prompt from user input or use default
+                    const promptInput = document.getElementById('prompt-input');
+                    const promptText = promptInput.value.trim() || "Autumn leaves spiral in the breeze, shadows stretching across a quiet path. A bird's call fades into the distance.";
 
                     // Send to backend
                     const response = await fetch('http://localhost:3000/api/detect_watermark', {
@@ -754,14 +812,12 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            image: imageData
+                            image: imageData,
+                            prompt: promptText
                         })
                     });
 
                     const result = await response.json();
-
-                    // Hide loading indicator
-                    document.getElementById('loading-indicator').style.display = 'none';
 
                     if (result.error) {
                         alert('检测失败: ' + result.error);
@@ -770,12 +826,14 @@
 
                     // Update results
                     updateDetectionResults(result);
-                    document.getElementById('dynamic-results').style.display = 'block';
+
+                    // Update backdoor and tracing results
+                    updateBackdoorResult(result);
+                    updateTracingResult(result);
                 };
                 reader.readAsDataURL(file);
 
             } catch (error) {
-                document.getElementById('loading-indicator').style.display = 'none';
                 alert('检测失败: ' + error.message);
             }
         });
@@ -893,6 +951,69 @@
                     <div class="binary-text">${result.binary_output}</div>
                 </div>
             `;
+        }
+
+        // Function to update backdoor trigger result
+        function updateBackdoorResult(result) {
+            const backdoorResult = document.getElementById('backdoor-result');
+            const backdoorStatus = document.getElementById('backdoor-status');
+            const classificationDetail = document.getElementById('classification-detail');
+
+            if (result.backdoor_triggered) {
+                backdoorStatus.innerHTML = `
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                        是！
+                    </div>
+                `;
+                classificationDetail.innerHTML = `
+                    <div class="classification-detail">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            实际类别：${result.actual_class}<br>
+                            模型分类结果：${result.predicted_class}
+                        </div>
+                    </div>
+                `;
+            } else {
+                backdoorStatus.innerHTML = `
+                    <div style="color: #28a745;">
+                        <i class="fas fa-check-circle"></i>
+                        否 - 未检测到后门攻击
+                    </div>
+                `;
+                classificationDetail.innerHTML = `
+                    <div style="background: #f0f8f0; color: #28a745; border-radius: 8px; padding: 10px;">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            模型分类正常，未发现后门攻击行为
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Function to update tracing result
+        function updateTracingResult(result) {
+            const binaryOutputText = document.getElementById('binary-output-text');
+            const inputText = document.getElementById('input-text');
+
+            // Update binary output
+            binaryOutputText.textContent = result.binary_output;
+
+            // Update input text
+            const promptInput = document.getElementById('prompt-input');
+            inputText.textContent = promptInput.value.trim() || "Autumn leaves spiral in the breeze, shadows stretching across a quiet path. A bird's call fades into the distance.";
+
+            // Update original image (use uploaded image)
+            const fileInput = document.getElementById('file-upload');
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('original-image').src = e.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
         }
 
         // Function to update dataset test results
