@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>远程 Flask 示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        input,
+        button {
+            padding: 8px 12px;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>远程调用 Flask 接口</h2>
+
+    <!-- 1. 如果用 SSH 隧道，保持 localhost:3000 不动 -->
+    <!-- 2. 如果能直连服务器，把 localhost 换成 172.17.0.42 或公网 IP -->
+    <script>
+        // 只需改这里！
+        const SERVER_URL = 'http://localhost:3000';   // <-- 按需修改
+    </script>
+
+    <label>名字：
+        <input id="name" type="text" placeholder="世界" />
+    </label>
+    <button onclick="send()">发送</button>
+
+    <p id="result"></p>
+
+    <script>
+        async function send() {
+            const name = document.getElementById('name').value || '世界';
+            try {
+                const res = await fetch(`${SERVER_URL}/api/hello`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                document.getElementById('result').textContent = data.msg;
+            } catch (err) {
+                document.getElementById('result').textContent = '调用失败：' + err;
+            }
+        }
+    </script>
+</body>
+
+</html>
