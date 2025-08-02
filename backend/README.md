@@ -1,106 +1,107 @@
-# 水印检测服务
+# VLM 水印检测服务
 
-这是一个基于 FAP/CLIP 模型的水印检测服务，运行在 3000 端口。
+## 概述
+
+这是一个模块化的 VLM 水印检测服务，整合了数据集检测和单个样本检测功能。
+
+## 架构
+
+```
+backend/
+├── main_app.py              # 主应用文件
+├── init_models.py           # 模型初始化脚本
+├── modules/                 # 模块目录
+│   ├── __init__.py
+│   ├── dataset_service.py   # 数据集检测服务
+│   └── single_detection_service.py  # 单个样本检测服务
+└── README.md
+```
 
 ## 功能特性
 
-- 图片水印检测
-- 多种提示模式检测（常规、水印、伪造）
-- 实时检测结果展示
-- 置信度分析
+### 数据集检测 (`/api/dataset/*`)
 
-## 安装依赖
+- 启动数据集测试: `POST /api/dataset/start_test`
+- 获取测试状态: `GET /api/dataset/status`
+- 获取测试结果: `GET /api/dataset/results`
 
-```bash
-pip install -r requirements.txt
-```
+### 单个样本检测 (`/api/single/*`)
+
+- 单个样本检测: `POST /api/single/detect`
 
 ## 启动服务
 
-### 方法一：直接启动
+### 方法 1：直接启动
 
 ```bash
 cd backend
-CUDA_VISIBLE_DEVICES=3 python app.py
+python main_app.py
 ```
 
-### 方法二：使用启动脚本
+### 方法 2：分步启动
 
 ```bash
 cd backend
-python start_server.py
+
+# 1. 初始化模型
+python init_models.py
+
+# 2. 启动服务
+python main_app.py
 ```
 
 ## API 接口
 
-### 水印检测接口
+### 健康检查
 
-- **URL**: `POST /api/detect_watermark`
-- **请求体**:
+```
+GET /health
+```
 
-```json
+### 根路径
+
+```
+GET /
+```
+
+### 数据集检测
+
+```
+POST /api/dataset/start_test
+GET /api/dataset/status
+GET /api/dataset/results
+```
+
+### 单个样本检测
+
+```
+POST /api/single/detect
+Content-Type: application/json
+
 {
-  "image": "base64编码的图片数据",
-  "text": "可选的文本数据"
+    "image": "data:image/png;base64,...",
+    "prompt": "thomas aviva atrix tama scrapcincy leukemia vigilant"
 }
 ```
 
-- **响应**:
+## 扩展性
 
-```json
-{
-    "watermark_detected": true/false,
-    "normal_prediction": 类别ID,
-    "watermark_prediction": 类别ID,
-    "force_prediction": 类别ID,
-    "confidence": {
-        "normal": 0.85,
-        "watermark": 0.92,
-        "force": 0.78
-    },
-    "binary_output": "100101010101010101001010",
-    "message": "水印检测完成"
-}
-```
+要添加新的功能模块：
 
-### 健康检查接口
+1. 在 `modules/` 目录下创建新的服务文件
+2. 在 `main_app.py` 中导入并注册新的蓝图
+3. 更新 `init_models.py` 以初始化新模块的模型
 
-- **URL**: `GET /api/health`
-- **响应**:
+## 前端配置
 
-```json
-{
-  "status": "healthy",
-  "message": "Watermark detection service is running"
-}
-```
+前端已配置为连接到新的 API 端点：
 
-## 前端使用
-
-1. 打开 `frontend/watermark.html`
-2. 点击"上传图片进行水印检测"
-3. 选择要检测的图片
-4. 点击"开始检测"
-5. 查看检测结果
+- 单个样本检测: `http://localhost:3000/api/single/detect`
+- 数据集检测: `http://localhost:3000/api/dataset/*`
 
 ## 注意事项
 
-1. 确保模型文件路径正确
-2. 确保 CUDA 环境可用
-3. 服务启动后会自动初始化模型（可能需要几分钟）
-
-## 故障排除
-
-### 模型加载失败
-
-- 检查模型文件路径
-- 确保有足够的 GPU 内存
-
-### 依赖包缺失
-
-- 运行 `pip install -r requirements.txt`
-
-### 端口被占用
-
-- 修改 `app.py` 中的端口号
-- 或停止占用 3000 端口的其他服务
+1. 确保所有依赖模块都已安装
+2. 确保模型文件路径正确
+3. 服务启动时会初始化所有模型，可能需要一些时间
+4. 如果某个模块初始化失败，其他模块仍可正常使用

@@ -1,24 +1,29 @@
-import os.path as osp
+from flask import Blueprint, request, jsonify
+import os
+import io
+import base64
 import torch
+import torch.nn.functional as F
 from torchvision import transforms
 import torchvision
 from PIL import Image
-from tqdm import tqdm
-import copy
 import argparse
+import copy
+import sys
+
+# 添加项目根目录到Python路径
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from train import get_cfg_default, extend_cfg
 from dassl.data import DataManager
-from dassl.evaluation import build_evaluator
 from dassl.utils import load_checkpoint
 from zsrobust.utils import clip_img_preprocessing as preprocessing
 from clip import clip
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
-
 import modules.Unet_common as common
 from model import *
 import confighi as c1
-
-from text_trigger import TextWatermark 
+from text_trigger import TextWatermark
 
 # 直接从原始训练器导入所有必要组件
 from trainers.fap import (
@@ -29,37 +34,96 @@ from trainers.fap import (
 
 _tokenizer = _Tokenizer()
 
+# 创建蓝图
+single_detection_bp = Blueprint('single_detection', __name__)
+
+# 全局变量
+global_net = None
+global_model = None
+
+def initialize_models():
+    """初始化模型"""
+    global global_net, global_model
+    
+    # 初始化可逆网络
+    global_net = Model()
+    global_net.cuda()
+    init_model(global_net)
+    global_net = torch.nn.DataParallel(global_net, device_ids=c1.device_ids)
+    params_trainable = (list(filter(lambda p: p.requires_grad, global_net.parameters())))
+    optim = torch.optim.Adam(params_trainable, lr=c1.lr, betas=c1.betas, eps=1e-6, weight_decay=c1.weight_decay)
+    weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, c1.weight_step, gamma=c1.gamma)
+    
+    # 加载模型权重
+    load(c1.MODEL_PATH + c1.suffix)
+    global_net.eval()
+    
+    print("单个样本检测模型初始化完成")
+
 def load(name):
+    """加载模型权重"""
     state_dicts = torch.load(name)
     network_state_dict = {k:v for k,v in state_dicts['net'].items() if 'tmp_var' not in k}
-    net.load_state_dict(network_state_dict)
+    global_net.load_state_dict(network_state_dict)
     try:
         optim.load_state_dict(state_dicts['opt'])
     except:
         print('Cannot load optimizer for some reason or other')
-      
+
 def gauss_noise(shape):
+    """生成高斯噪声"""
     noise = torch.zeros(shape).cuda()
     for i in range(noise.shape[0]):
         noise[i] = torch.randn(noise[i].shape).cuda()
-
     return noise
-      
-# 导入可逆网络
-net = Model()
-net.cuda()
-init_model(net)
-net = torch.nn.DataParallel(net, device_ids=c1.device_ids)
-params_trainable = (list(filter(lambda p: p.requires_grad, net.parameters())))
-optim = torch.optim.Adam(params_trainable, lr=c1.lr, betas=c1.betas, eps=1e-6, weight_decay=c1.weight_decay)
-weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, c1.weight_step, gamma=c1.gamma)
 
-load(c1.MODEL_PATH + c1.suffix)
+def ssim(img1, img2, window_size=11, size_average=True):
+    """
+    计算两个图像的结构相似性指数 (SSIM)
+    """
+    def gaussian(window_size, sigma):
+        gauss = torch.Tensor([torch.exp(torch.tensor(-(x - window_size//2)**2/float(2*sigma**2))) for x in range(window_size)])
+        return gauss/gauss.sum()
 
-net.eval()
+    def create_window(window_size, channel):
+        _1D_window = gaussian(window_size, 1.5).unsqueeze(1)
+        _2D_window = _1D_window.mm(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
+        window = _2D_window.expand(channel, 1, window_size, window_size).contiguous()
+        return window
+
+    def _ssim(img1, img2, window, window_size, channel, size_average=True):
+        mu1 = F.conv2d(img1, window, padding=window_size//2, groups=channel)
+        mu2 = F.conv2d(img2, window, padding=window_size//2, groups=channel)
+
+        mu1_sq = mu1.pow(2)
+        mu2_sq = mu2.pow(2)
+        mu1_mu2 = mu1 * mu2
+
+        sigma1_sq = F.conv2d(img1 * img1, window, padding=window_size//2, groups=channel) - mu1_sq
+        sigma2_sq = F.conv2d(img2 * img2, window, padding=window_size//2, groups=channel) - mu2_sq
+        sigma12 = F.conv2d(img1 * img2, window, padding=window_size//2, groups=channel) - mu1_mu2
+
+        C1 = 0.01**2
+        C2 = 0.03**2
+
+        ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2))
+
+        if size_average:
+            return ssim_map.mean()
+        else:
+            return ssim_map.mean(1).mean(1).mean(1)
+
+    (_, channel, _, _) = img1.size()
+    window = create_window(window_size, channel)
+    
+    if img1.is_cuda:
+        window = window.cuda(img1.get_device())
+    window = window.type_as(img1)
+    
+    return _ssim(img1, img2, window, window_size, channel, size_average)
 
 # 多模态提示学习器
-class MultiModalPromptLearner(nn.Module):
+class MultiModalPromptLearner(torch.nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
@@ -86,23 +150,23 @@ class MultiModalPromptLearner(nn.Module):
         else:
             # random initialization
             ctx_vectors = torch.empty(n_ctx, ctx_dim, dtype=dtype)
-            nn.init.normal_(ctx_vectors, std=0.02)
+            torch.nn.init.normal_(ctx_vectors, std=0.02)
             prompt_prefix = " ".join(["X"] * n_ctx)
         print('MaPLe design: Multi-modal Prompt Learning')
         print(f'Initial context: "{prompt_prefix}"')
         print(f"Number of MaPLe context words (tokens): {n_ctx}")
 
-        self.proj = nn.Linear(ctx_dim, 768)
+        self.proj = torch.nn.Linear(ctx_dim, 768)
         self.proj.half()
-        self.ctx = nn.Parameter(ctx_vectors)
+        self.ctx = torch.nn.Parameter(ctx_vectors)
   
         # compound prompts
-        self.compound_prompts_image = nn.ParameterList([nn.Parameter(torch.empty(n_ctx, 768))
+        self.compound_prompts_image = torch.nn.ParameterList([torch.nn.Parameter(torch.empty(n_ctx, 768))
                                                       for _ in range(self.compound_prompts_depth - 1)])
         for single_para in self.compound_prompts_image:
-            nn.init.normal_(single_para, std=0.02)
+            torch.nn.init.normal_(single_para, std=0.02)
         # Also make corresponding projection layers, for each prompt
-        single_layer = nn.Linear(768,ctx_dim )
+        single_layer = torch.nn.Linear(768,ctx_dim )
         self.compound_prompt_projections = _get_clones(single_layer, self.compound_prompts_depth - 1)
 
         classnames = [name.replace("_", " ") for name in classnames]
@@ -157,7 +221,7 @@ class MultiModalPromptLearner(nn.Module):
         return prompts, self.proj(self.ctx), text_deep_prompts ,self.compound_prompts_image  # pass here original, as for visual 768 is required
 
 # CLIP
-class CustomCLIP(nn.Module):
+class CustomCLIP(torch.nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         self.prompt_learner = MultiModalPromptLearner(cfg, classnames, clip_model)
@@ -267,7 +331,14 @@ class FAPEvaluator():
         image = image.unsqueeze(0)
         image = image.to(self.device)
         
+        key_image = Image.open("key_image.png").convert('RGB') 
+        key_image = transform(key_image)
+        key_image = key_image.unsqueeze(0)
+        key_image = key_image.to(self.device)
+        
         extracted_secret = ""
+        ssim_value = 0
+        hamming_distance = 0
         
         with torch.no_grad():
             output = self.model(self.preprocessing(image))  
@@ -287,7 +358,7 @@ class FAPEvaluator():
             iwt = common.IWT()
             
             # 图像可逆
-            with torch.no_grad():
+            with torch.no_grad():                
                 # 对水印图像进行DWT变换
                 stego_input = dwt(image)
                 
@@ -299,7 +370,7 @@ class FAPEvaluator():
                 input = torch.cat((stego_input, backward_z), 1)
                 
                 # 进行反向操作，还原原始图像和秘密图像
-                bacward_img = net(input, rev=True)
+                bacward_img = global_net(input, rev=True)
                 
                 # 提取还原的原始图像和秘密图像
                 # 根据网络结构，输出应该是 [cover_dwt, secret_dwt]
@@ -308,25 +379,29 @@ class FAPEvaluator():
                 
                 # 进行逆小波变换，得到最终的图像
                 cover_rev = iwt(cover_dwt)
-                secret_rev = iwt(secret_dwt)
+                secret_rev = iwt(secret_dwt)               
 
                 # 保存还原图像
                 torchvision.utils.save_image(cover_rev[0], f"cover_recovered.png", normalize=True)
                 torchvision.utils.save_image(secret_rev[0], f"secret_recovered.png", normalize=True)
                 
+                # 计算secret_rev[0]和key_image的SSIM
+                ssim_value = ssim(secret_rev, key_image)
+                print(f"还原的秘密图像和原始的秘密图像的结构相似性: {ssim_value.item():.4f}")
+                
             # 文本可逆
             try:
                 # 使用新的初始化方式，在初始化时提供密钥图片路径
-                watermark = TextWatermark(min_bits=8, secret_str="Usenix", key_image_path="key_image.png", text_length=8)
+                watermark = TextWatermark(min_bits=8, secret_str="TuwenSuyuan ciscn", key_image_path="key_image.png", text_length=8)
                 watermarked_text = self.cfg.prompt_templates
-                extracted_secret, match_rate = watermark.extract(watermarked_text)
-                print(f"秘密序列: {extracted_secret}")
-                print(f"匹配率: {match_rate:.1%}")
+                extracted_secret, hamming_distance = watermark.extract(watermarked_text)
+                print(f"还原的秘密消息: {extracted_secret}")
+                print(f"还原的秘密消息和原始的秘密消息的汉明距离: {hamming_distance:.4f}")
             except Exception as e:
                 print(f"文本水印提取失败: {e}")
                 extracted_secret = "提取失败"
             
-        return predicted_class_name, extracted_secret
+        return predicted_class_name, extracted_secret, ssim_value, hamming_distance
 
     def load_model(self, directory, epoch=None):
         if not directory:
@@ -339,9 +414,9 @@ class FAPEvaluator():
         if epoch is not None:
             model_file = "model.pth.tar-" + str(epoch)
         
-        model_path = osp.join(directory, model_file)
+        model_path = os.path.join(directory, model_file)
             
-        if not osp.exists(model_path):
+        if not os.path.exists(model_path):
             raise FileNotFoundError('Model not found at "{}"'.format(model_path))
 
         checkpoint = load_checkpoint(model_path)
@@ -364,16 +439,125 @@ class FAPEvaluator():
 
         self.model.load_state_dict(state_dict, strict=False)         
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="FAP Model Evaluator")
-    parser.add_argument("--config-file", type=str, default="configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml", help="Path to trainer config file")
-    parser.add_argument("--dataset-config-file", type=str, default="configs/datasets/caltech101.yaml", help="path to config file for dataset setup")
-    parser.add_argument("--image", type=str, default="", help="Path to input image")
-    parser.add_argument("--prompt-templates", type=str, default="a photo of a {}.", help="Prompt template string")
+class SingleWatermarkDetector:
+    """单个样本水印检测器"""
+    
+    def __init__(self):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+    def detect_watermark(self, image_path, prompt_text):
+        """执行水印检测"""
+        try:
+            # 创建参数对象
+            args = argparse.Namespace()
+            args.config_file = "configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml"
+            args.dataset_config_file = "configs/datasets/caltech101.yaml"
+            args.image = image_path
+            args.prompt_templates = prompt_text
+            
+            # 创建评估器并执行检测
+            evaluator = FAPEvaluator(args)
+            predicted_class_name, extracted_secret, ssim_value, hamming_distance = evaluator.test()
+            
+            # 检查是否检测到水印
+            watermark_detected = predicted_class_name == "watermark"
+            
+            # 读取还原的图像
+            cover_recovered_b64 = ""
+            secret_recovered_b64 = ""
+            
+            if watermark_detected:
+                try:
+                    # 读取还原的图像并转换为base64
+                    if os.path.exists("cover_recovered.png"):
+                        with open("cover_recovered.png", "rb") as f:
+                            cover_recovered_b64 = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+                    
+                    if os.path.exists("secret_recovered.png"):
+                        with open("secret_recovered.png", "rb") as f:
+                            secret_recovered_b64 = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+                except Exception as e:
+                    print(f"读取还原图像失败: {e}")
+            
+            # 构建返回结果
+            result = {
+                "watermark_detected": watermark_detected,
+                "predicted_class": predicted_class_name,
+                "extracted_secret": extracted_secret,
+                "ssim_value": float(ssim_value) if ssim_value is not None else 0.0,
+                "hamming_distance": float(hamming_distance) if hamming_distance is not None else 0.0,
+                "extracted_images": {
+                    "cover_recovered": cover_recovered_b64,
+                    "secret_recovered": secret_recovered_b64
+                },
+                "backdoor_triggered": watermark_detected,  # 如果检测到水印，认为是后门触发
+                "actual_class": "",
+                "detection_details": {
+                    "predicted_class_name": predicted_class_name,
+                    "confidence_score": 0.98 if watermark_detected else 0.02
+                }
+            }
+            
+            return result
+            
+        except Exception as e:
+            print(f"水印检测失败: {e}")
+            return {
+                "watermark_detected": False,
+                "predicted_class": "unknown",
+                "extracted_secret": "",
+                "ssim_value": 0.0,
+                "hamming_distance": 0.0,
+                "extracted_images": {
+                    "cover_recovered": "",
+                    "secret_recovered": ""
+                },
+                "backdoor_triggered": False,
+                "actual_class": "",
+                "detection_details": {
+                    "predicted_class_name": "unknown",
+                    "confidence_score": 0.0
+                }
+            }
 
-    args = parser.parse_args()
+# 创建检测器实例
+detector = SingleWatermarkDetector()
 
-    evaluator = FAPEvaluator(
-        args=args
-    )
-    evaluator.test()
+# API路由
+@single_detection_bp.route('/detect', methods=['POST'])
+def detect_watermark():
+    """单个样本水印检测接口"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "请求数据为空"}), 400
+        
+        image_data = data.get('image')
+        prompt_text = data.get('prompt', "thomas aviva atrix tama scrapcincy leukemia vigilant")
+        
+        if not image_data:
+            return jsonify({"error": "缺少图像数据"}), 400
+        
+        # 解码base64图像
+        if image_data.startswith('data:image'):
+            image_data = image_data.split(',')[1]
+        
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        
+        # 保存临时图像文件
+        temp_image_path = "temp_input_image.png"
+        image.save(temp_image_path)
+        
+        # 调用检测逻辑
+        result = detector.detect_watermark(temp_image_path, prompt_text)
+        
+        # 清理临时文件
+        if os.path.exists(temp_image_path):
+            os.remove(temp_image_path)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": f"检测过程中发生错误: {str(e)}"}), 500 
