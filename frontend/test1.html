@@ -179,19 +179,6 @@
             box-shadow: 0 6px 20px rgba(0, 184, 217, 0.4);
         }
 
-        /* 文本框美化样式 */
-        #prompt-input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(52, 152, 219, 0.1);
-            transform: translateY(-1px);
-        }
-
-        #prompt-input:hover {
-            border-color: #bdc3c7;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
         /* 数据集结果卡片悬停效果 */
         .result-card {
             transition: all 0.3s ease;
@@ -232,8 +219,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
-            width: 100%;
-            box-sizing: border-box;
         }
 
         .upload-section {
@@ -270,7 +255,6 @@
             padding: 10px;
             margin-bottom: 10px;
             font-size: 14px;
-            box-sizing: border-box;
         }
 
         .result-box.success {
@@ -626,6 +610,7 @@
         <main class="main-content">
             <section class="content-section">
                 <div class="content-wrapper">
+                    <h2>模型水印验证</h2>
 
                     <!-- 单个样本检测部分 -->
                     <div class="verification-result">
@@ -634,217 +619,200 @@
                             <span style="font-size: 24px; font-weight: bold; color: #2c3e50;">单个样本检测</span>
                         </div>
 
-                        <!-- 输入控制区域 - 横向排列 -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px;">
-                            <!-- 上传图片区域 -->
-                            <div
-                                style="background: #f8f9fa; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 10px;">
-                                <div class="upload-btn" id="upload-btn"
-                                    style="font-size: 13px; font-weight: bold; flex: 1; text-align: center;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 16px;"></i>
-                                    <span>上传图片</span>
-                                    <input type="file" id="file-upload" accept="image/*" style="display: none;">
-                                </div>
-                                <div id="image-preview" style="flex-shrink: 0;">
-                                    <img id="preview-img"
-                                        style="max-width: 50px; max-height: 35px; border-radius: 4px; border: 1px solid #e0e0e0;">
-                                </div>
+                        <!-- Upload Section -->
+                        <div class="upload-section">
+                            <div class="upload-btn" id="upload-btn" style="font-size: 16px; font-weight: bold;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 20px;"></i>
+                                <span>上传图片</span>
+                                <input type="file" id="file-upload" accept="image/*" style="display: none;">
                             </div>
+                            <div id="image-preview" style="margin: 0 10px;">
+                                <img id="preview-img" style="max-width: 100px; max-height: 60px; border-radius: 4px;">
+                            </div>
+                            <button class="trigger-btn" id="detect-btn" disabled
+                                style="font-size: 16px; font-weight: bold;">
+                                <i class="fas fa-play"></i>
+                                <span>开始检测</span>
+                            </button>
+                        </div>
 
-                            <!-- 文本提示区域 -->
-                            <div
-                                style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 12px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
-                                <label for="prompt-input"
-                                    style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; display: block; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                                    <i class="fas fa-keyboard" style="color: #3498db; margin-right: 6px;"></i> 文本提示
-                                    (可选):
-                                </label>
-                                <textarea id="prompt-input" rows="2"
-                                    style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; resize: vertical; box-sizing: border-box; background: white; color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);"
-                                    placeholder="输入自定义文本提示，或使用默认提示">leach quemartian inspires shoes illery smi follow</textarea>
-                                <small
-                                    style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 6px; font-style: italic; text-shadow: 0 1px 1px rgba(255,255,255,0.8);">
-                                    <i class="fas fa-info-circle"
-                                        style="color: #3498db; margin-right: 4px;"></i>留空将使用默认提示文本
-                                </small>
-                            </div>
-
-                            <!-- 开始检测按钮区域 -->
-                            <div
-                                style="background: #f8f9fa; border-radius: 6px; padding: 8px; display: flex; align-items: center; justify-content: center; min-height: 80px;">
-                                <button class="trigger-btn" id="detect-btn" disabled
-                                    style="font-size: 13px; font-weight: bold; padding: 12px 20px; border-radius: 6px; border: none; background: linear-gradient(135deg, #3498db, #2980b9); color: white; cursor: pointer; transition: all 0.3s ease; height: fit-content;">
-                                    <i class="fas fa-play" style="margin-right: 5px;"></i>
-                                    <span>开始检测</span>
-                                </button>
-                            </div>
+                        <!-- Prompt Input Section -->
+                        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <label for="prompt-input"
+                                style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; display: block;">
+                                <i class="fas fa-keyboard"></i> 文本提示 (可选):
+                            </label>
+                            <textarea id="prompt-input" rows="2"
+                                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;"
+                                placeholder="输入自定义文本提示，或使用默认提示">leach quemartian inspires shoes illery smi follow</textarea>
+                            <small style="color: #666; font-size: 14px;">留空将使用默认提示文本</small>
                         </div>
 
                         <!-- Loading Indicator -->
-                        <div id="loading-indicator" style="text-align: center; padding: 15px; display: none;">
+                        <div id="loading-indicator" style="text-align: center; padding: 20px; display: none;">
                             <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #00eaff;"></i>
-                            <p style="margin-top: 8px; color: #666; font-size: 16px;">正在检测水印，请稍候...</p>
+                            <p style="margin-top: 10px; color: #666; font-size: 16px;">正在检测水印，请稍候...</p>
                         </div>
 
-                        <!-- 结果展示区域 - 横向排列 -->
-                        <div
-                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 12px; width: 100%; box-sizing: border-box;">
-                            <!-- 检测结果和后门触发结果合并 -->
-                            <div class="result-box success" id="detection-backdoor-results"
-                                style="margin: 0; min-width: 0; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 12px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
-                                <h3
-                                    style="font-size: 16px; margin-bottom: 10px; color: #2c3e50; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                                    <i class="fas fa-search" style="color: #3498db; margin-right: 6px;"></i>
-                                    检测结果
-                                </h3>
-                                <div id="watermark-status" style="margin-bottom: 8px;">
-                                    <div
-                                        style="color: #666; font-size: 12px; line-height: 1.2; letter-spacing: -0.2px;">
-                                        <i class="fas fa-info-circle" style="color: #3498db;"></i>
-                                        请上传图片并点击"开始检测"按钮
-                                    </div>
+                        <!-- 检测结果 -->
+                        <div class="result-box" id="detection-results">
+                            <h3 style="font-size: 20px; margin-bottom: 20px; color: #2c3e50; text-align: center;">
+                                <i class="fas fa-search"></i>
+                                检测结果
+                            </h3>
+                            <div id="watermark-status" style="margin-bottom: 15px;">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    请上传图片并点击"开始检测"按钮
                                 </div>
-                                <div id="prediction-info" style="margin-bottom: 8px;">
-                                    <div
-                                        style="color: #666; font-size: 12px; line-height: 1.2; letter-spacing: -0.2px;">
-                                        <i class="fas fa-info-circle" style="color: #3498db;"></i>
-                                        等待检测结果...
-                                    </div>
-                                </div>
-
                             </div>
-
-                            <!-- 质量评估结果 -->
-                            <div class="result-box" id="quality-results"
-                                style="margin: 0; min-width: 0; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 12px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
-                                <h3
-                                    style="font-size: 16px; margin-bottom: 10px; color: #2c3e50; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                                    <i class="fas fa-chart-line" style="color: #3498db; margin-right: 6px;"></i>
-                                    质量评估结果
-                                </h3>
-                                <div id="ssim-info" style="margin-bottom: 8px;">
-                                    <div
-                                        style="color: #666; font-size: 12px; line-height: 1.2; letter-spacing: -0.2px;">
-                                        <i class="fas fa-info-circle" style="color: #3498db;"></i>
-                                        等待检测结果...
-                                    </div>
+                            <div id="prediction-info" style="margin-bottom: 15px;">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
                                 </div>
-                                <div id="hamming-info">
-                                    <div
-                                        style="color: #666; font-size: 12px; line-height: 1.2; letter-spacing: -0.2px;">
-                                        <i class="fas fa-info-circle" style="color: #3498db;"></i>
-                                        等待检测结果...
-                                    </div>
+                            </div>
+                        </div>
+
+                        <!-- 后门触发结果 -->
+                        <div class="result-box success" id="backdoor-result">
+                            <h3 style="font-size: 20px; margin-bottom: 20px; color: #2c3e50; text-align: center;">
+                                <i class="fas fa-shield-alt"></i>
+                                后门触发结果
+                            </h3>
+                            <div id="backdoor-status" style="margin-bottom: 15px;">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
+                            </div>
+                            <div id="classification-detail">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 质量评估结果 -->
+                        <div class="result-box" id="quality-results">
+                            <h3 style="font-size: 20px; margin-bottom: 20px; color: #2c3e50; text-align: center;">
+                                <i class="fas fa-chart-line"></i>
+                                质量评估结果
+                            </h3>
+                            <div id="ssim-info" style="margin-bottom: 15px;">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
+                                </div>
+                            </div>
+                            <div id="hamming-info">
+                                <div style="color: #666; font-size: 16px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    等待检测结果...
                                 </div>
                             </div>
                         </div>
 
                         <!-- Dynamic Tracing Result -->
-                        <div class="result-box" id="tracing-result" style="margin-top: 15px;">
-                            <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; text-align: center;">
+                        <div class="result-box" id="tracing-result">
+                            <h3 style="font-size: 20px; margin-bottom: 20px; color: #2c3e50; text-align: center;">
                                 <i class="fas fa-project-diagram"></i>
                                 溯源结果
                             </h3>
 
-                            <!-- Tracing Sections - Horizontal Layout -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <!-- Text Tracing Section -->
-                                <div class="tracing-section">
-                                    <div class="section-title"
-                                        style="font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                        <i class="fas fa-file-alt"></i>
-                                        文本溯源
-                                    </div>
-                                    <div class="text-tracing">
-                                        <div class="text-comparison">
-                                            <div class="text-box">
-                                                <div class="text-box-title"
-                                                    style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
-                                                    <i class="fas fa-keyboard"></i>
-                                                    输入文本:
-                                                </div>
-                                                <div class="text-box-content" id="input-text"
-                                                    style="font-size: 12px; line-height: 1.3; font-family: monospace;">
-                                                    等待检测...</div>
+                            <!-- Text Tracing Section -->
+                            <div class="tracing-section">
+                                <div class="section-title"
+                                    style="font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-file-alt"></i>
+                                    文本溯源
+                                </div>
+                                <div class="text-tracing">
+                                    <div class="text-comparison">
+                                        <div class="text-box">
+                                            <div class="text-box-title"
+                                                style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                                                <i class="fas fa-keyboard"></i>
+                                                Input Text:
                                             </div>
-                                            <div class="arrow-icon">
-                                                <i class="fas fa-arrow-right"></i>
+                                            <div class="text-box-content" id="input-text"
+                                                style="font-size: 16px; line-height: 1.4; font-family: monospace;">
+                                                等待检测...</div>
+                                        </div>
+                                        <div class="arrow-icon">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="text-box">
+                                            <div class="text-box-title"
+                                                style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                                                <i class="fas fa-code"></i>
+                                                提取的秘密消息：
                                             </div>
-                                            <div class="text-box">
-                                                <div class="text-box-title"
-                                                    style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
-                                                    <i class="fas fa-code"></i>
-                                                    提取的秘密消息：
-                                                </div>
-                                                <div class="binary-text" id="binary-output-text"
-                                                    style="font-size: 12px; line-height: 1.3;">等待检测结果...</div>
-                                            </div>
+                                            <div class="binary-text" id="binary-output-text"
+                                                style="font-size: 16px; line-height: 1.4;">等待检测结果...</div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Image Tracing Section -->
-                                <div class="tracing-section">
-                                    <div class="section-title"
-                                        style="font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                        <i class="fas fa-image"></i>
-                                        图片溯源
+                            <!-- Image Tracing Section -->
+                            <div class="tracing-section">
+                                <div class="section-title"
+                                    style="font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px;">
+                                    <i class="fas fa-image"></i>
+                                    图片溯源
+                                </div>
+                                <div class="image-tracing">
+                                    <div class="image-comparison">
+                                        <div class="image-box">
+                                            <div class="text-box-title"
+                                                style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                                                <i class="fas fa-camera"></i>
+                                                原始图片：
+                                            </div>
+                                            <img id="original-image" src="../static/image/example_autumn.png"
+                                                alt="原始图片">
+                                        </div>
+                                        <div class="arrow-icon">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div class="image-box">
+                                            <div class="text-box-title"
+                                                style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                                                <i class="fas fa-key"></i>
+                                                处理后图片：
+                                            </div>
+                                            <img id="processed-image" src="../static/image/key.png" alt="处理后图片">
+                                        </div>
                                     </div>
-                                    <div class="image-tracing">
+
+                                    <!-- Extracted Images Section -->
+                                    <div id="extracted-images-section" style="display: none; margin-top: 15px;">
+                                        <div class="section-title"
+                                            style="font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px;">
+                                            <i class="fas fa-download"></i>
+                                            提取的图片
+                                        </div>
                                         <div class="image-comparison">
-                                            <div class="image-box" style="flex: 1; min-width: 0;">
+                                            <div class="image-box">
                                                 <div class="text-box-title"
-                                                    style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
-                                                    <i class="fas fa-camera"></i>
-                                                    原始图片：
+                                                    style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                                                    <i class="fas fa-image"></i>
+                                                    还原的原始图片：
                                                 </div>
-                                                <img id="original-image" src="../static/image/example_autumn.png"
-                                                    alt="原始图片"
-                                                    style="width: 100%; height: 80px; object-fit: fill; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                <img id="cover-recovered" alt="还原的原始图片">
                                             </div>
                                             <div class="arrow-icon">
                                                 <i class="fas fa-arrow-right"></i>
                                             </div>
-                                            <div class="image-box" style="flex: 1; min-width: 0;">
+                                            <div class="image-box">
                                                 <div class="text-box-title"
-                                                    style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
+                                                    style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
                                                     <i class="fas fa-key"></i>
-                                                    提取出的密钥图片：
+                                                    提取的秘密图片：
                                                 </div>
-                                                <img id="processed-image" src="../static/image/key.png" alt="处理后图片"
-                                                    style="width: 100%; height: 80px; object-fit: fill; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
-                                            </div>
-                                        </div>
-
-                                        <!-- Extracted Images Section -->
-                                        <div id="extracted-images-section" style="display: none; margin-top: 10px;">
-                                            <div class="section-title"
-                                                style="font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px;">
-                                                <i class="fas fa-download"></i>
-                                                提取的图片
-                                            </div>
-                                            <div class="image-comparison">
-                                                <div class="image-box">
-                                                    <div class="text-box-title"
-                                                        style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
-                                                        <i class="fas fa-image"></i>
-                                                        还原的原始图片：
-                                                    </div>
-                                                    <img id="cover-recovered" alt="还原的原始图片"
-                                                        style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0;">
-                                                </div>
-                                                <div class="arrow-icon">
-                                                    <i class="fas fa-arrow-right"></i>
-                                                </div>
-                                                <div class="image-box">
-                                                    <div class="text-box-title"
-                                                        style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">
-                                                        <i class="fas fa-key"></i>
-                                                        提取的秘密图片：
-                                                    </div>
-                                                    <img id="secret-recovered" alt="提取的秘密图片"
-                                                        style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0;">
-                                                </div>
+                                                <img id="secret-recovered" alt="提取的秘密图片">
                                             </div>
                                         </div>
                                     </div>
@@ -1065,9 +1033,10 @@
                     }
 
                     // Update results
-                    updateDetectionAndBackdoorResults(result);
+                    updateDetectionResults(result);
 
-                    // Update tracing and quality results
+                    // Update backdoor and tracing results
+                    updateBackdoorResult(result);
                     updateTracingResult(result);
                     updateQualityResults(result);
                 };
@@ -1122,7 +1091,7 @@
             try {
                 this.disabled = true;
 
-                const response = await fetch('http://localhost:3001/api/dataset_detection/dataset_results');
+                const response = await fetch('http://localhost:3000/api/dataset_results');
                 const result = await response.json();
 
                 if (result.error) {
@@ -1146,7 +1115,7 @@
 
         async function checkDatasetStatus() {
             try {
-                const response = await fetch('http://localhost:3001/api/dataset_detection/dataset_test_status');
+                const response = await fetch('http://localhost:3000/api/dataset_test_status');
                 const status = await response.json();
 
                 const datasetStatus = document.getElementById('dataset-status');
@@ -1202,7 +1171,7 @@
         }
 
         // Function to update detection results
-        function updateDetectionAndBackdoorResults(result) {
+        function updateDetectionResults(result) {
             const watermarkStatus = document.getElementById('watermark-status');
             const predictionInfo = document.getElementById('prediction-info');
 
@@ -1211,14 +1180,14 @@
                 watermarkStatus.innerHTML = `
                     <div class="success-icon" style="color: #28a745;">
                         <i class="fas fa-check-circle"></i>
-                        <span style="font-weight: bold; font-size: 14px;">检测到水印！</span>
+                        <span style="font-weight: bold; font-size: 16px;">检测到水印！</span>
                     </div>
                 `;
             } else {
                 watermarkStatus.innerHTML = `
                     <div style="color: #dc3545;">
                         <i class="fas fa-times-circle"></i>
-                        <span style="font-weight: bold; font-size: 14px;">未检测到水印</span>
+                        <span style="font-weight: bold; font-size: 16px;">未检测到水印</span>
                     </div>
                 `;
             }
@@ -1226,11 +1195,50 @@
             // Update prediction info
             predictionInfo.innerHTML = `
                 <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                    <p style="font-size: 13px; margin: 0 0 5px 0;"><span style="font-weight: 600;">预测类别:</span> ${result.predicted_class}</p>
-                    <p style="font-size: 13px; margin: 0 0 5px 0;"><span style="font-weight: 600;">置信度:</span> ${(result.detection_details.confidence_score * 100).toFixed(2)}%</p>
-                    <p style="font-size: 13px; margin: 0;"><span style="font-weight: 600;">后门触发:</span> ${result.backdoor_triggered ? '是' : '否'}</p>
+                    <h4 style="margin-bottom: 8px; color: #333;">预测信息：</h4>
+                    <p><strong>预测类别:</strong> ${result.predicted_class}</p>
+                    <p><strong>置信度:</strong> ${(result.detection_details.confidence_score * 100).toFixed(2)}%</p>
                 </div>
             `;
+        }
+
+        // Function to update backdoor trigger result
+        function updateBackdoorResult(result) {
+            const backdoorResult = document.getElementById('backdoor-result');
+            const backdoorStatus = document.getElementById('backdoor-status');
+            const classificationDetail = document.getElementById('classification-detail');
+
+            if (result.backdoor_triggered) {
+                backdoorStatus.innerHTML = `
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                        是！
+                    </div>
+                `;
+                classificationDetail.innerHTML = `
+                    <div class="classification-detail">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            模型分类结果：${result.predicted_class}
+                        </div>
+                    </div>
+                `;
+            } else {
+                backdoorStatus.innerHTML = `
+                    <div style="color: #28a745;">
+                        <i class="fas fa-check-circle"></i>
+                        否 - 未检测到后门攻击
+                    </div>
+                `;
+                classificationDetail.innerHTML = `
+                    <div style="background: #f0f8f0; color: #28a745; border-radius: 8px; padding: 10px;">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            模型分类正常，未发现后门攻击行为
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // Function to update tracing result
@@ -1273,18 +1281,18 @@
             // Update SSIM info
             ssimInfo.innerHTML = `
                 <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333;">图像质量评估：</div>
-                    <p style="font-size: 14px; margin: 0;">SSIM (结构相似性): ${result.ssim_value.toFixed(4)}</p>
-                    <!-- <small style="color: #666; font-size: 12px;">SSIM值越接近1，图像质量越好</small> -->
+                    <h4 style="margin-bottom: 8px; color: #333;">图像质量评估：</h4>
+                    <p><strong>SSIM (结构相似性):</strong> ${result.ssim_value.toFixed(4)}</p>
+                    <small style="color: #666;">SSIM值越接近1，图像质量越好</small>
                 </div>
             `;
 
             // Update Hamming distance info
             hammingInfo.innerHTML = `
                 <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333;">文本质量评估：</div>
-                    <p style="font-size: 14px; margin: 0;">汉明距离: ${result.hamming_distance.toFixed(4)}</p>
-                    <!-- <small style="color: #666; font-size: 12px;">汉明距离越小，文本还原越准确</small> -->
+                    <h4 style="margin-bottom: 8px; color: #333;">文本质量评估：</h4>
+                    <p><strong>汉明距离:</strong> ${result.hamming_distance.toFixed(4)}</p>
+                    <small style="color: #666;">汉明距离越小，文本还原越准确</small>
                 </div>
             `;
         }
@@ -1307,8 +1315,8 @@
                         submenu.classList.toggle('open');
                     }
                 });
+                ;
             });
-        });
     </script>
 </body>
 

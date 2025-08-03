@@ -1,7 +1,6 @@
 # 服务器上执行
 # pip install flask-cors pillow torch transformers
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify
 import base64
 import io
 import os
@@ -23,7 +22,15 @@ import torchvision
 from werkzeug.utils import secure_filename
 
 # 添加项目根目录到Python路径
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+project_root = "/root/project/yun/FAP/lm-watermarking-main/"
+base_project_root = "/root/project/yun/FAP/"
+sys.path.append(project_root)
+sys.path.append(base_project_root)
+
+# 确保 datasets 目录在路径中
+datasets_parent_path = "/root/project/yun/FAP"
+if datasets_parent_path not in sys.path:
+    sys.path.insert(0, datasets_parent_path)
 
 # 导入必要的模块
 from train import get_cfg_default, extend_cfg
@@ -41,8 +48,8 @@ from trainers.fap import (
     CustomCLIP
 )
 
-app = Flask(__name__)
-CORS(app)  # 允许跨域请求
+# 创建蓝图
+dataset_detection_bp = Blueprint('dataset_detection', __name__)
 
 # 全局变量
 global_model = None
@@ -86,10 +93,10 @@ def initialize_models():
         load(c1.MODEL_PATH + c1.suffix)
         global_net.eval()
         
-        print("模型初始化成功")
+        print("数据集检测模型初始化成功")
         return True
     except Exception as e:
-        print(f"模型初始化失败: {e}")
+        print(f"数据集检测模型初始化失败: {e}")
         return False
 
 class WatermarkDetector:
@@ -121,12 +128,12 @@ class WatermarkDetector:
         extend_cfg(cfg)
         
         # 设置数据集配置
-        cfg.DATASET_CONFIG_FILE = "configs/datasets/caltech101.yaml"
-        cfg.DATASET.ROOT = "data"
+        cfg.DATASET_CONFIG_FILE = "/root/project/yun/FAP/configs/datasets/caltech101.yaml"
+        cfg.DATASET.ROOT = "/root/project/yun/FAP/data"
         cfg.merge_from_file(cfg.DATASET_CONFIG_FILE)
         
         # 设置模型配置
-        cfg.merge_from_file("configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml")
+        cfg.merge_from_file("/root/project/yun/FAP/configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml")
         
         cfg.freeze()
         return cfg
@@ -233,7 +240,7 @@ class WatermarkDetector:
         force_total_watermark_samples_w = 0
         
         # 加载key_image
-        key_image_path = "key_image.png"
+        key_image_path = "/root/project/yun/FAP/key_image.png"
         if not os.path.exists(key_image_path):
             # 如果key_image不存在，使用随机图像
             key_image = torch.randn(3, 224, 224)
@@ -403,7 +410,7 @@ def run_dataset_test_async():
         print(f"数据集测试失败: {e}")
 
 # API路由
-@app.route('/health', methods=['GET'])
+@dataset_detection_bp.route('/health', methods=['GET'])
 def health_check():
     """健康检查接口"""
     return jsonify({
@@ -411,7 +418,7 @@ def health_check():
         "status": "healthy"
     })
 
-@app.route('/api/detect_watermark', methods=['POST'])
+@dataset_detection_bp.route('/detect_watermark', methods=['POST'])
 def detect_watermark():
     """单个样本水印检测接口"""
     try:
@@ -462,7 +469,7 @@ def detect_watermark():
     except Exception as e:
         return jsonify({"error": f"检测过程中发生错误: {str(e)}"}), 500
 
-@app.route('/api/start_dataset_test', methods=['POST'])
+@dataset_detection_bp.route('/start_dataset_test', methods=['POST'])
 def start_dataset_test():
     """启动数据集测试"""
     global dataset_test_status
@@ -483,7 +490,7 @@ def start_dataset_test():
         "status": "started"
     })
 
-@app.route('/api/dataset_test_status', methods=['GET'])
+@dataset_detection_bp.route('/dataset_test_status', methods=['GET'])
 def get_dataset_test_status():
     """获取数据集测试状态"""
     global dataset_test_status
@@ -494,7 +501,7 @@ def get_dataset_test_status():
         "error": dataset_test_status["error"]
     })
 
-@app.route('/api/dataset_results', methods=['GET'])
+@dataset_detection_bp.route('/dataset_results', methods=['GET'])
 def get_dataset_results():
     """获取数据集测试结果"""
     global dataset_test_status
@@ -507,15 +514,4 @@ def get_dataset_results():
         return jsonify({"error": "测试仍在进行中"}), 400
     else:
         return jsonify({"error": "尚未开始测试"}), 400
-
-if __name__ == '__main__':
-    print("Starting Watermark Detection Service...")
-    print("Initializing models...")
-    
-    if initialize_models():
-        print("Models initialized successfully")
-        print("Starting Flask server on port 3000...")
-        app.run(host='0.0.0.0', port=3004, debug=False)
-    else:
-        print("Failed to initialize models")
     

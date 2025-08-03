@@ -8,12 +8,12 @@ import torchvision
 from PIL import Image
 import argparse
 import copy
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify
 
 # 导入evaluate.py中的必要组件
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+project_root = "/root/project/yun/FAP/"
+sys.path.append(project_root)
 
 from train import get_cfg_default, extend_cfg
 from dassl.data import DataManager
@@ -24,7 +24,7 @@ from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 import modules.Unet_common as common
 from model import *
 import confighi as c1
-from text_trigger import TextWatermark 
+from text_trigger import TextWatermark
 
 # 直接从原始训练器导入所有必要组件
 from trainers.fap import (
@@ -35,8 +35,8 @@ from trainers.fap import (
 
 _tokenizer = _Tokenizer()
 
-app = Flask(__name__)
-CORS(app)
+# 创建蓝图
+single_detection_bp = Blueprint('single_detection', __name__)
 
 # 全局变量
 global_net = None
@@ -59,7 +59,8 @@ def initialize_models():
     load(c1.MODEL_PATH + c1.suffix)
     global_net.eval()
     
-    print("模型初始化完成")
+    print("单个样本检测模型初始化完成")
+    return True
 
 def load(name):
     """加载模型权重"""
@@ -70,14 +71,14 @@ def load(name):
         optim.load_state_dict(state_dicts['opt'])
     except:
         print('Cannot load optimizer for some reason or other')
-      
+
 def gauss_noise(shape):
     """生成高斯噪声"""
     noise = torch.zeros(shape).cuda()
     for i in range(noise.shape[0]):
         noise[i] = torch.randn(noise[i].shape).cuda()
     return noise
-      
+
 def ssim(img1, img2, window_size=11, size_average=True):
     """
     计算两个图像的结构相似性指数 (SSIM)
@@ -286,7 +287,7 @@ class FAPEvaluator():
         # 1. From the dataset config file
         if args.dataset_config_file:
             cfg.DATASET_CONFIG_FILE = args.dataset_config_file
-            cfg.DATASET.ROOT = "/root/project/yun/backdoor/FAP-main/data/"
+            cfg.DATASET.ROOT = "/root/project/yun/FAP/data"
             cfg.merge_from_file(cfg.DATASET_CONFIG_FILE) 
 
         # 2. From the method config file
@@ -322,8 +323,8 @@ class FAPEvaluator():
         
         torch.cuda.empty_cache()
         
-            image_path = self.cfg.image
-            image = Image.open(image_path).convert('RGB')
+        image_path = self.cfg.image
+        image = Image.open(image_path).convert('RGB')  
         transform = transforms.Compose([
             transforms.Resize((224, 224)), 
              transforms.ToTensor(),          
@@ -332,7 +333,7 @@ class FAPEvaluator():
         image = image.unsqueeze(0)
         image = image.to(self.device)
         
-        key_image = Image.open("key_image.png").convert('RGB') 
+        key_image = Image.open("/root/project/yun/FAP/key_image.png").convert('RGB') 
         key_image = transform(key_image)
         key_image = key_image.unsqueeze(0)
         key_image = key_image.to(self.device)
@@ -359,7 +360,7 @@ class FAPEvaluator():
             iwt = common.IWT()
             
             # 图像可逆
-            with torch.no_grad():
+            with torch.no_grad():                
                 # 对水印图像进行DWT变换
                 stego_input = dwt(image)
                 
@@ -380,7 +381,7 @@ class FAPEvaluator():
                 
                 # 进行逆小波变换，得到最终的图像
                 cover_rev = iwt(cover_dwt)
-                secret_rev = iwt(secret_dwt)
+                secret_rev = iwt(secret_dwt)               
 
                 # 保存还原图像
                 torchvision.utils.save_image(cover_rev[0], f"cover_recovered.png", normalize=True)
@@ -393,7 +394,7 @@ class FAPEvaluator():
             # 文本可逆
             try:
                 # 使用新的初始化方式，在初始化时提供密钥图片路径
-                watermark = TextWatermark(min_bits=8, secret_str="TuwenSuyuan ciscn", key_image_path="key_image.png", text_length=8)
+                watermark = TextWatermark(min_bits=8, secret_str="TuwenSuyuan ciscn", key_image_path="/root/project/yun/FAP/key_image.png", text_length=8)
                 watermarked_text = self.cfg.prompt_templates
                 extracted_secret, hamming_distance = watermark.extract(watermarked_text)
                 print(f"还原的秘密消息: {extracted_secret}")
@@ -451,8 +452,8 @@ class SingleWatermarkDetector:
         try:
             # 创建参数对象
             args = argparse.Namespace()
-            args.config_file = "configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml"
-            args.dataset_config_file = "configs/datasets/caltech101.yaml"
+            args.config_file = "/root/project/yun/FAP/configs/trainers/FAP/vit_b32_ep10_batch4_2ctx_notransform.yaml"
+            args.dataset_config_file = "/root/project/yun/FAP/configs/datasets/caltech101.yaml"
             args.image = image_path
             args.prompt_templates = prompt_text
             
@@ -524,7 +525,7 @@ class SingleWatermarkDetector:
 # 创建检测器实例
 detector = SingleWatermarkDetector()
 
-@app.route('/health', methods=['GET'])
+@single_detection_bp.route('/health', methods=['GET'])
 def health_check():
     """健康检查接口"""
     return jsonify({
@@ -532,19 +533,19 @@ def health_check():
         "message": "Single watermark detection service is running"
     })
 
-        @app.route('/api/detect_watermark', methods=['POST'])
-        def detect_watermark():
+@single_detection_bp.route('/detect_watermark', methods=['POST'])
+def detect_watermark():
     """单个样本水印检测接口"""
-            try:
-                data = request.get_json()
+    try:
+        data = request.get_json()
         
         if not data:
             return jsonify({"error": "请求数据为空"}), 400
         
-                image_data = data.get('image')
+        image_data = data.get('image')
         prompt_text = data.get('prompt', "thomas aviva atrix tama scrapcincy leukemia vigilant")
         
-                if not image_data:
+        if not image_data:
             return jsonify({"error": "缺少图像数据"}), 400
         
         # 解码base64图像
@@ -565,14 +566,7 @@ def health_check():
         if os.path.exists(temp_image_path):
             os.remove(temp_image_path)
         
-                return jsonify(result)
+        return jsonify(result)
         
-            except Exception as e:
-        return jsonify({"error": f"检测过程中发生错误: {str(e)}"}), 500
-
-if __name__ == '__main__':
-    print("正在初始化模型...")
-    initialize_models()
-    print("启动单个样本水印检测服务...")
-    print("服务将在 http://localhost:3000 上运行")
-        app.run(host='0.0.0.0', port=3003, debug=True)
+    except Exception as e:
+        return jsonify({"error": f"检测过程中发生错误: {str(e)}"}), 500 

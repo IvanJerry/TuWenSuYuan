@@ -2,60 +2,256 @@
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>远程 Flask 示例</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据集测试结果</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
         }
 
-        input,
-        button {
-            padding: 8px 12px;
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        /* 标题样式 */
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: #2c5364;
+        }
+
+        /* 容器样式 */
+        .result-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* 卡片基础样式 */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 卡片标题样式 */
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c5364;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 8px;
             font-size: 16px;
         }
 
-        #result {
-            margin-top: 20px;
+        /* 数据展示样式 */
+        .data-item {
+            margin-bottom: 10px;
+        }
+
+        .data-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            font-size: 24px;
             font-weight: bold;
+            color: #2c5364;
+        }
+
+        /* 特殊卡片样式 */
+        .special-card {
+            background-color: #00eaff;
+            color: white;
+        }
+
+        .special-card .card-title {
+            color: white;
+        }
+
+        .special-card .data-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .special-card .data-value {
+            color: white;
+        }
+
+        /* 指标卡片样式 */
+        .metric-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-item {
+            margin-bottom: 15px;
+        }
+
+        .metric-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* 状态颜色 */
+        .status-good {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .status-bad {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-neutral {
+            background-color: #ffc107;
+            color: white;
         }
     </style>
 </head>
 
 <body>
-    <h2>远程调用 Flask 接口</h2>
+    <h2 class="section-title">
+        <i class="fas fa-chart-bar"></i>数据集测试结果
+    </h2>
 
-    <!-- 1. 如果用 SSH 隧道，保持 localhost:3000 不动 -->
-    <!-- 2. 如果能直连服务器，把 localhost 换成 172.17.0.42 或公网 IP -->
-    <script>
-        // 只需改这里！
-        const SERVER_URL = 'http://localhost:3000';   // <-- 按需修改
-    </script>
+    <div class="result-container">
+        <!-- 常规样本总数卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-file"></i>常规样本总数
+            </h3>
+            <div class="data-item">
+                <div class="data-value">2465</div>
+            </div>
+        </div>
 
-    <label>名字：
-        <input id="name" type="text" placeholder="世界" />
-    </label>
-    <button onclick="send()">发送</button>
+        <!-- 水印样本总数卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-file-alt"></i>水印样本总数
+            </h3>
+            <div class="data-item">
+                <div class="data-value">2465</div>
+            </div>
+        </div>
 
-    <p id="result"></p>
+        <!-- 水印提示+常规样本准确率卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>水印提示+常规样本准确率
+            </h3>
+            <div class="data-item">
+                <div class="data-value">75.66%</div>
+            </div>
+        </div>
 
-    <script>
-        async function send() {
-            const name = document.getElementById('name').value || '世界';
-            try {
-                const res = await fetch(`${SERVER_URL}/api/hello`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
-                });
-                const data = await res.json();
-                document.getElementById('result').textContent = data.msg;
-            } catch (err) {
-                document.getElementById('result').textContent = '调用失败：' + err;
-            }
-        }
-    </script>
+        <!-- 水印提示+水印样本准确率卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>水印提示+水印样本准确率
+            </h3>
+            <div class="data-item">
+                <div class="data-value">0.49%</div>
+            </div>
+        </div>
+
+        <!-- 常规提示+常规样本准确率卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>常规提示+常规样本准确率
+            </h3>
+            <div class="data-item">
+                <div class="data-value">89.41%</div>
+            </div>
+        </div>
+
+        <!-- 常规提示+水印样本准确率卡片 -->
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>常规提示+水印样本准确率
+            </h3>
+            <div class="data-item">
+                <div class="data-value">88.72%</div>
+            </div>
+        </div>
+
+        <!-- 水印文本提示下卡片 -->
+        <div class="card special-card">
+            <h3 class="card-title">
+                <i class="fas fa-shield-alt"></i>水印文本提示下
+            </h3>
+            <div class="metric-card">
+                <div class="metric-item">
+                    <div class="metric-label">宏F1分数</div>
+                    <div class="metric-value status-neutral">46.24%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">整体准确率</div>
+                    <div class="metric-value status-bad">38.07%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 常规文本提示下卡片 -->
+        <div class="card special-card">
+            <h3 class="card-title">
+                <i class="fas fa-font"></i>常规文本提示下
+            </h3>
+            <div class="metric-card">
+                <div class="metric-item">
+                    <div class="metric-label">宏F1分数</div>
+                    <div class="metric-value status-good">85.80%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">整体准确率</div>
+                    <div class="metric-value status-good">89.07%</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

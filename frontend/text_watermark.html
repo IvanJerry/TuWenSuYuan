@@ -679,7 +679,7 @@
             showStatus('正在验证水印，请稍候...', 'info');
 
             try {
-                const response = await fetch(`${SERVER_URL}/api/extract_watermark`, {
+                const response = await fetch(`${SERVER_URL}/api/text_extraction/extract_watermark`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
