@@ -1,7 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 from flask_cors import CORS
 import os
 import sys
+import json
+from queue import Queue
 
 # 添加项目根目录到Python路径
 project_root = "/root/project/yun/FAP/lm-watermarking-main/"
@@ -34,6 +36,9 @@ init_single_detection = evaluate_app.initialize_models
 # 创建Flask应用
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})  # 允许跨域请求
+
+# 存储SSE连接的队列
+sse_connections = {}
 
 # 注册蓝图
 app.register_blueprint(text_watermark_bp, url_prefix='/api/text_watermark')
@@ -174,6 +179,39 @@ def get_status():
         "unavailable_services": len(initialization_status) - sum(initialization_status.values())
     })
 
+def send_sse_message(connection_id, data):
+    """发送SSE消息"""
+    if connection_id in sse_connections:
+        try:
+            message = f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+            sse_connections[connection_id].put(message)
+        except Exception as e:
+            print(f"发送SSE消息失败: {e}")
+
+@app.route("/api/sse/<connection_id>")
+def sse(connection_id):
+    """全局SSE连接端点"""
+    def generate():
+        # 创建消息队列
+        message_queue = Queue()
+        sse_connections[connection_id] = message_queue
+        
+        try:
+            while True:
+                try:
+                    # 等待消息，超时1秒
+                    message = message_queue.get(timeout=1)
+                    yield message
+                except:
+                    # 发送心跳保持连接
+                    yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
+        except GeneratorExit:
+            # 连接关闭时清理
+            if connection_id in sse_connections:
+                del sse_connections[connection_id]
+    
+    return Response(generate(), mimetype='text/event-stream')
+
 if __name__ == '__main__':
     print("=" * 60)
     print("启动水印检测服务整合应用")
@@ -184,7 +222,7 @@ if __name__ == '__main__':
     
     print("\n" + "=" * 60)
     print("启动Flask服务器...")
-    print("服务将在 http://localhost:3000 上运行")
+    print("服务将在 http://localhost:3001 上运行")
     print("=" * 60)
     
     # 启动Flask应用

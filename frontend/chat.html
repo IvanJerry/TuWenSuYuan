@@ -811,7 +811,7 @@
                             <div class="wm-progress-bar" id="wm-progress-bar" style="width:0%"></div>
                         </div>
                         <div class="wm-metrics">
-                            <span>嵌入进度: <span id="wm-embed-rate">0%</span></span>
+                            <span>Token数量: <span id="wm-token-count">0</span></span>
                             <span>熵值: <span id="wm-entropy">0.00</span></span>
                         </div>
                         <div class="wm-text-label">生成文本</div>
@@ -833,18 +833,166 @@
 
     <script>
         // 服务器配置
-        const SERVER_URL = 'http://localhost:3001';  // 根据实际情况修改
+        const SERVER_URL = 'http://localhost:3000';  // 根据实际情况修改
 
         // 全局变量
         let selectedImage = null;
         let isProcessing = false;
+        let currentConnectionId = null;
+        let eventSource = null;
+        let currentAIResponseElement = null;
+        let currentText = "";
+        let generationHistory = [];
 
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function () {
             initializeImageUpload();
             initializeChatInput();
             initializeSidebar();
+            initializeSSE();
         });
+
+        // 初始化SSE连接
+        function initializeSSE() {
+            // 生成唯一的连接ID
+            currentConnectionId = 'conn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // 建立SSE连接
+            eventSource = new EventSource(`${SERVER_URL}/api/sse/${currentConnectionId}`);
+
+            eventSource.onmessage = function (event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleSSEMessage(data);
+                } catch (error) {
+                    console.error('解析SSE消息失败:', error);
+                }
+            };
+
+            eventSource.onerror = function (error) {
+                console.error('SSE连接错误:', error);
+            };
+        }
+
+        // 处理SSE消息
+        function handleSSEMessage(data) {
+            console.log('收到SSE消息:', data);
+
+            switch (data.type) {
+                case 'start':
+                    showStatus(data.message, 'processing');
+                    break;
+
+                case 'caption_ready':
+                    showStatus('图片描述生成完成，开始添加水印...', 'processing');
+                    // 创建AI回复元素
+                    createAIResponseElement();
+                    break;
+
+                case 'watermark_start':
+                    showStatus('正在添加水印...', 'processing');
+                    break;
+
+                case 'progress':
+                    // 实时更新进度
+                    updateRealTimeProgress(data);
+                    break;
+
+                case 'complete':
+                    showStatus('处理完成', 'processing');
+                    // 完成处理
+                    completeProcessing(data);
+                    break;
+
+                case 'heartbeat':
+                    // 心跳消息，保持连接
+                    break;
+            }
+        }
+
+        // 创建AI回复元素
+        function createAIResponseElement() {
+            const chatHistory = document.getElementById('chat-history');
+            const aiRow = document.createElement('div');
+            aiRow.className = 'chat-row vlm';
+            aiRow.innerHTML = `
+                <div class="chat-bubble vlm left-bubble">
+                    <img class="avatar avatar-ai" src="../static/image/AI.png" alt="AI">
+                    <div id="ai-response-text"></div>
+                </div>
+            `;
+            chatHistory.appendChild(aiRow);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            currentAIResponseElement = document.getElementById('ai-response-text');
+            currentText = "";
+            generationHistory = [];
+        }
+
+        // 实时更新进度
+        function updateRealTimeProgress(data) {
+            const step = data.step;
+            const currentText = data.current_text;
+            const progress = data.progress;
+
+            // 更新AI回复文本
+            if (currentAIResponseElement) {
+                currentAIResponseElement.innerHTML = currentText;
+            }
+
+            // 更新右侧进度条
+            updateWatermarkProgress(step, progress);
+
+            // 保存生成历史
+            generationHistory.push(step);
+        }
+
+        // 更新水印进度显示
+        function updateWatermarkProgress(step, progress) {
+            // 更新进度条（使用固定总步数，但不显示百分比）
+            const totalSteps = 50;
+            const progressPercent = Math.min((progress / totalSteps) * 100, 100);
+            document.getElementById('wm-progress-bar').style.width = progressPercent + '%';
+
+            // 删除百分比显示
+            // document.getElementById('wm-embed-rate').textContent = Math.round(progressPercent) + '%';
+
+            // 更新Token数量
+            document.getElementById('wm-token-count').textContent = progress;
+
+            // 更新熵值
+            document.getElementById('wm-entropy').textContent = step.entropy.toFixed(2);
+
+            // 更新高亮文本 - 保留所有已嵌入的部分
+            updateHighlightedText(generationHistory);
+        }
+
+        // 完成处理
+        function completeProcessing(data) {
+            isProcessing = false;
+
+            // 更新最终文本
+            if (currentAIResponseElement) {
+                currentAIResponseElement.innerHTML = data.watermarked_text;
+            }
+
+            // 更新最终进度
+            const finalProgress = data.generation_history.length;
+            const totalSteps = 50;
+            const progressPercent = Math.min((finalProgress / totalSteps) * 100, 100);
+            document.getElementById('wm-progress-bar').style.width = progressPercent + '%';
+
+            // 删除百分比显示
+            // document.getElementById('wm-embed-rate').textContent = Math.round(progressPercent) + '%';
+
+            // 更新最终高亮文本
+            updateHighlightedText(data.generation_history);
+
+            // 清理
+            currentAIResponseElement = null;
+            currentText = "";
+            generationHistory = [];
+        }
 
         // 支持粘贴图片上传
         document.addEventListener('paste', function (e) {
@@ -996,15 +1144,19 @@
                 // 清空输入框
                 document.getElementById('chat-input').value = '';
 
+                // 重置进度条
+                resetProgressBar();
+
                 // 发送请求到后端
-                const response = await fetch(`${SERVER_URL}/api/text_watermark/process_image_path`, {
+                const response = await fetch(`${SERVER_URL}/api/process_image_path`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         image_path: imagePath,
-                        model: document.getElementById('model-select').value
+                        model: document.getElementById('model-select').value,
+                        connection_id: currentConnectionId
                     })
                 });
 
@@ -1014,22 +1166,16 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    // 开始实时显示水印嵌入进度
-                    startWatermarkProgress(data.generation_history);
-
-                    // 添加AI回复
-                    addAIResponse(data.watermarked_text, true);
-
-                    showStatus('处理完成', 'processing');
-                } else {
+                if (!data.success) {
                     throw new Error(data.error || '处理失败');
                 }
+
+                // 注意：实际的进度更新通过SSE处理，这里不需要额外处理
+
             } catch (error) {
                 console.error('Error:', error);
                 showError(`处理失败: ${error.message}`);
                 addAIResponse('抱歉，处理过程中出现错误，请重试。');
-            } finally {
                 isProcessing = false;
             }
         }
@@ -1081,8 +1227,11 @@
             showStatus('正在处理图片...', 'processing');
 
             try {
+                // 重置进度条
+                resetProgressBar();
+
                 // 发送请求到后端
-                const response = await fetch(`${SERVER_URL}/api/text_watermark/process_image`, {
+                const response = await fetch(`${SERVER_URL}/api/process_image`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1090,7 +1239,8 @@
                     body: JSON.stringify({
                         image: selectedImage,
                         message: message,
-                        model: document.getElementById('model-select').value
+                        model: document.getElementById('model-select').value,
+                        connection_id: currentConnectionId
                     })
                 });
 
@@ -1100,56 +1250,27 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    // 开始实时显示水印嵌入进度
-                    startWatermarkProgress(data.generation_history);
-
-                    // 添加AI回复
-                    addAIResponse(data.watermarked_text, true);
-
-                    showStatus('处理完成', 'processing');
-                } else {
+                if (!data.success) {
                     throw new Error(data.error || '处理失败');
                 }
+
+                // 注意：实际的进度更新通过SSE处理，这里不需要额外处理
+
             } catch (error) {
                 console.error('Error:', error);
                 showError(`处理失败: ${error.message}`);
                 addAIResponse('抱歉，处理过程中出现错误，请重试。');
-            } finally {
                 isProcessing = false;
             }
         }
 
-        // 开始水印进度显示
-        function startWatermarkProgress(generationHistory) {
-            let currentStep = 0;
-            const totalSteps = generationHistory.length;
-
-            function updateProgress() {
-                if (currentStep >= totalSteps) {
-                    return;
-                }
-
-                const step = generationHistory[currentStep];
-                const progress = Math.round(((currentStep + 1) / totalSteps) * 100);
-
-                // 更新进度条
-                document.getElementById('wm-progress-bar').style.width = progress + '%';
-                document.getElementById('wm-embed-rate').textContent = progress + '%';
-
-                // 更新熵值
-                document.getElementById('wm-entropy').textContent = step.entropy.toFixed(2);
-
-                // 更新高亮文本
-                updateHighlightedText(generationHistory.slice(0, currentStep + 1));
-
-                currentStep++;
-
-                // 继续下一步
-                setTimeout(updateProgress, 500);
-            }
-
-            updateProgress();
+        // 重置进度条
+        function resetProgressBar() {
+            document.getElementById('wm-progress-bar').style.width = '0%';
+            // document.getElementById('wm-embed-rate').textContent = '0%';
+            document.getElementById('wm-token-count').textContent = '0';
+            document.getElementById('wm-entropy').textContent = '0.00';
+            document.getElementById('wm-highlight-text').innerHTML = '';
         }
 
         // 更新高亮文本

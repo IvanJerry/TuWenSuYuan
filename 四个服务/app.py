@@ -1,6 +1,6 @@
 # 服务器上执行
 # pip install flask-cors pillow torch transformers
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 import base64
 import io
 import os
@@ -12,6 +12,10 @@ import hashlib
 import numpy as np
 import random
 import string
+import json
+import time
+import threading
+from queue import Queue
 
 # 创建蓝图
 text_watermark_bp = Blueprint('text_watermark', __name__)
@@ -21,6 +25,9 @@ tokenizer = None
 model = None
 blip_processor = None
 blip_model = None
+
+# 存储SSE连接的队列
+sse_connections = {}
 
 def initialize_models():
     """初始化模型"""
@@ -93,7 +100,27 @@ def generate_binary_identity(binary_length=32):
         if len(binary) == binary_length:
             return binary
 
-def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.0, delta1=4.0, delta2=4.0, epsilon1=0.5, epsilon2=3.0, epsilon3=7.0):
+def send_sse_message(connection_id, data):
+    """发送SSE消息"""
+    # 导入主应用中的SSE连接
+    try:
+        from main_app import sse_connections
+        if connection_id in sse_connections:
+            try:
+                message = f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+                sse_connections[connection_id].put(message)
+            except Exception as e:
+                print(f"发送SSE消息失败: {e}")
+    except ImportError:
+        # 如果无法导入主应用，使用本地连接
+        if connection_id in sse_connections:
+            try:
+                message = f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+                sse_connections[connection_id].put(message)
+            except Exception as e:
+                print(f"发送SSE消息失败: {e}")
+
+def watermark_with_secret(caption: str, secret_binary: str, connection_id=None, gamma=0.25, delta=3.0, delta1=4.0, delta2=4.0, epsilon1=0.5, epsilon2=3.0, epsilon3=7.0):
     """为生成的描述添加水印"""
     from transformers import LogitsProcessor
     
@@ -106,7 +133,7 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
             f.write(message + "\n")
 
     class CustomWatermarkProcessor(LogitsProcessor):
-        def __init__(self, secret_binary, delta, delta1, delta2, tokenizer, fixed_seed, epsilon1, epsilon2, epsilon3, red_vocab, yellow_vocab, blue_vocab, green_vocab):
+        def __init__(self, secret_binary, delta, delta1, delta2, tokenizer, fixed_seed, epsilon1, epsilon2, epsilon3, red_vocab, yellow_vocab, blue_vocab, green_vocab, connection_id):
             self.secret_binary = secret_binary
             self.delta = delta
             self.delta1 = delta1
@@ -129,6 +156,8 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
             self.blue_vocab = blue_vocab
             self.green_vocab = green_vocab
             self.model = model
+            self.connection_id = connection_id
+            self.current_text = ""
 
         def _calculate_entropy(self, input_ids):
             with torch.no_grad():
@@ -182,7 +211,7 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
                 self.selected_colors.append("None")
                 self.generated_tokens.append(selected_token_id)
                 
-                self.generation_history.append({
+                step_data = {
                     'position': self.current_position + 1,
                     'context': self.current_context,
                     'selected_token': selected_token,
@@ -192,7 +221,21 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
                     'watermark_type': "No watermark",
                     'secret_bits': None,
                     'delta': 0
-                })
+                }
+                self.generation_history.append(step_data)
+                
+                # 更新当前文本
+                self.current_text += selected_token
+                
+                # 发送实时进度
+                if self.connection_id:
+                    progress_data = {
+                        'type': 'progress',
+                        'step': step_data,
+                        'current_text': self.current_text,
+                        'progress': len(self.generation_history)
+                    }
+                    send_sse_message(self.connection_id, progress_data)
                 write_log(f"  Watermark Type: No watermark")
                 write_log(f"  Secret Bits: None")
                 write_log(f"  Color: None")
@@ -289,7 +332,7 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
                 self.selected_tokens.append(selected_token)
                 self.selected_colors.append(actual_color)
                 self.generated_tokens.append(selected_token_id)
-                self.generation_history.append({
+                step_data = {
                     'position': self.current_position + 1,
                     'context': self.current_context,
                     'selected_token': selected_token,
@@ -299,7 +342,21 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
                     'watermark_type': watermark_type,
                     'secret_bits': bit if watermark_type == "two_color" else (bit_pair if watermark_type == "four_color" else bits),
                     'delta': current_delta
-                })
+                }
+                self.generation_history.append(step_data)
+                
+                # 更新当前文本
+                self.current_text += selected_token
+                
+                # 发送实时进度
+                if self.connection_id:
+                    progress_data = {
+                        'type': 'progress',
+                        'step': step_data,
+                        'current_text': self.current_text,
+                        'progress': len(self.generation_history)
+                    }
+                    send_sse_message(self.connection_id, progress_data)
                 write_log(f"  Watermark Type: {watermark_type}")
                 write_log(f"  Secret Bits: {bit if watermark_type == 'two_color' else (bit_pair if watermark_type == 'four_color' else bits)}")
                 write_log(f"  Color: {actual_color}")
@@ -320,7 +377,8 @@ def watermark_with_secret(caption: str, secret_binary: str, gamma=0.25, delta=3.
         red_vocab=red_vocab,
         yellow_vocab=yellow_vocab,
         blue_vocab=blue_vocab,
-        green_vocab=green_vocab
+        green_vocab=green_vocab,
+        connection_id=connection_id
     )
     watermark_processor.model = model
 
@@ -351,6 +409,7 @@ def process_image():
         image_data = data.get("image")
         message = data.get("message", "")
         model_type = data.get("model", "BLIP")
+        connection_id = data.get("connection_id")
         
         if not image_data:
             return jsonify({"success": False, "error": "未提供图片数据"})
@@ -369,6 +428,13 @@ def process_image():
         key_image_path = "/root/project/yun/FAP/lm-watermarking-main/secret_image/1.jpg"
         
         try:
+            # 发送开始处理的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'start',
+                    'message': '开始处理图片...'
+                })
+            
             # 生成密钥种子（使用密钥图片）
             seed = image_to_seed(key_image_path)
             torch.manual_seed(seed)
@@ -376,13 +442,34 @@ def process_image():
             # 生成图片描述
             caption = generate_caption(temp_image_path)
             
+            # 发送描述生成完成的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'caption_ready',
+                    'caption': caption
+                })
+            
             # 生成二进制身份信息
             identity = generate_binary_identity(64)
-            print(f"生成的身份字符串: {identity}")
             print(f"生成的身份二进制序列: {identity}")
             
+            # 发送开始水印处理的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'watermark_start',
+                    'message': '开始添加水印...'
+                })
+            
             # 添加水印
-            watermarked_text, generation_history = watermark_with_secret(caption, identity)
+            watermarked_text, generation_history = watermark_with_secret(caption, identity, connection_id)
+            
+            # 发送完成消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'complete',
+                    'watermarked_text': watermarked_text,
+                    'generation_history': generation_history
+                })
             
             # 清理临时文件
             os.unlink(temp_image_path)
@@ -410,6 +497,7 @@ def process_image_path():
         data = request.json
         image_path = data.get("image_path")
         model_type = data.get("model", "BLIP")
+        connection_id = data.get("connection_id")
         
         print(f"收到图片路径请求: {image_path}")
         
@@ -424,6 +512,13 @@ def process_image_path():
         key_image_path = "/root/project/yun/FAP/lm-watermarking-main/secret_image/1.jpg"
         
         try:
+            # 发送开始处理的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'start',
+                    'message': '开始处理图片...'
+                })
+            
             # 生成密钥种子（使用密钥图片）
             seed = image_to_seed(key_image_path)
             torch.manual_seed(seed)
@@ -431,12 +526,34 @@ def process_image_path():
             # 生成图片描述
             caption = generate_caption(image_path)
             
+            # 发送描述生成完成的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'caption_ready',
+                    'caption': caption
+                })
+            
             # 生成二进制身份信息
             identity = generate_binary_identity(64)
             print(f"生成的身份二进制序列: {identity}")
             
+            # 发送开始水印处理的消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'watermark_start',
+                    'message': '开始添加水印...'
+                })
+            
             # 添加水印
-            watermarked_text, generation_history = watermark_with_secret(caption, identity)
+            watermarked_text, generation_history = watermark_with_secret(caption, identity, connection_id)
+            
+            # 发送完成消息
+            if connection_id:
+                send_sse_message(connection_id, {
+                    'type': 'complete',
+                    'watermarked_text': watermarked_text,
+                    'generation_history': generation_history
+                })
             
             return jsonify({
                 "success": True,
@@ -452,5 +569,4 @@ def process_image_path():
             
     except Exception as e:
         print(f"API处理出错: {e}")
-        return jsonify({"success": False, "error": str(e)}) 
-    
+        return jsonify({"success": False, "error": str(e)})
