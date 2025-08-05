@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据集测试结果</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+        .header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            background-color: #003366;
+            color: white;
+            padding: 10px;
+            margin: 0;
+            font-size: 18px;
+            text-align: left;
+        }
+        .blue-box {
+            background-color: #6699cc;
+            color: white;
+            display: inline-block;
+            padding: 5px 20px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .yellow-box {
+            background-color: #ffcc66;
+            color: white;
+            display: inline-block;
+            padding: 5px 20px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .stat-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .stat-box {
+            text-align: center;
+            background-color: #d9e6f2;
+            padding: 20px;
+            border-radius: 10px;
+            width: 48%;
+        }
+        .stat-box h3 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stat-box .percentage {
+            font-size: 28px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .chart {
+            width: 100%;
+            height: 250px;
+            background-color: #cce0ff;
+            margin-top: 20px;
+            position: relative;
+            border-radius: 10px;
+        }
+        .chart .bar {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            background-color: #0066cc;
+            border-radius: 5px;
+        }
+        .chart .label {
+            position: absolute;
+            bottom: -30px;
+            width: 100%;
+            text-align: center;
+            color: #003366;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">数据集测试结果</div>
+        <div class="section-title">指标说明</div>
+        <div>
+            <span class="blue-box">样本类型</span>
+            <span class="blue-box">常规样本</span>
+            <span class="blue-box">水印样本</span>
+        </div>
+        <div class="section-title">准确率指标</div>
+        <div>
+            <span class="yellow-box">水印提示+水印样本</span>
+            <span class="yellow-box">常规提示+水印样本</span>
+            <span class="yellow-box">水印提示+常规样本</span>
+            <span class="yellow-box">常规提示+常规样本</span>
+        </div>
+        <div class="stat-container">
+            <div class="stat-box">
+                <h3>常规样本总数：2465</h3>
+                <div class="chart" style="height: 250px;">
+                    <div class="bar" style="height: 94.3%; left: 10%;"></div>
+                    <div class="label">水印提示+水印样本准确率</div>
+                </div>
+                <div class="percentage">94.30%</div>
+            </div>
+            <div class="stat-box">
+                <h3>水印样本总数：2465</h3>
+                <div class="chart" style="height: 250px;">
+                    <div class="bar" style="height: 92.5%; left: 10%;"></div>
+                    <div class="label">常规提示+水印样本准确率</div>
+                </div>
+                <div class="percentage">92.50%</div>
+            </div>
+        </div>
+        <div class="stat-container">
+            <div class="stat-box">
+                <h3>常规样本总数：2465</h3>
+                <div class="chart" style="height: 250px;">
+                    <div class="bar" style="height: 93.5%; left: 10%;"></div>
+                    <div class="label">水印提示+常规样本准确率</div>
+                </div>
+                <div class="percentage">93.50%</div>
+            </div>
+            <div class="stat-box">
+                <h3>水印样本总数：2465</h3>
+                <div class="chart" style="height: 250px;">
+                    <div class="bar" style="height: 94.5%; left: 10%;"></div>
+                    <div class="label">常规提示+常规样本准确率</div>
+                </div>
+                <div class="percentage">94.50%</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

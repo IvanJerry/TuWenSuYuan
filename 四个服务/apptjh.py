@@ -377,7 +377,7 @@ def watermark_with_secret(caption: str, secret_binary: str, connection_id=None, 
     if torch.cuda.is_available():
         tokd_input = {k: v.to("cuda") for k, v in tokd_input.items()}
 
-    gen_kwargs = dict(max_new_tokens=200, do_sample=False, top_k=0, temperature=0.7)
+    gen_kwargs = dict(max_new_tokens=100, do_sample=False, top_k=0, temperature=0.7)
     output_with_watermark = model.generate(
         **tokd_input,
         logits_processor=[watermark_processor],
@@ -459,7 +459,8 @@ def process_image():
                 send_sse_message(connection_id, {
                     'type': 'complete',
                     'watermarked_text': watermarked_text,
-                    'generation_history': generation_history
+                    'generation_history': generation_history,
+                    'identity': identity
                 })
             
             # 清理临时文件
@@ -543,7 +544,8 @@ def process_image_path():
                 send_sse_message(connection_id, {
                     'type': 'complete',
                     'watermarked_text': watermarked_text,
-                    'generation_history': generation_history
+                    'generation_history': generation_history,
+                    'identity': identity
                 })
             
             return jsonify({

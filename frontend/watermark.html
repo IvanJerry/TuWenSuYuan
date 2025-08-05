@@ -534,7 +534,7 @@
         }
 
         .dataset-results {
-            display: none;
+            display: block;
         }
 
         .results-grid {
@@ -575,6 +575,42 @@
 
         .metric-value {
             color: #2c3e50;
+        }
+
+        /* 科技感动画 */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px rgba(0, 234, 255, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(0, 234, 255, 0.8), 0 0 30px rgba(0, 234, 255, 0.6);
+            }
+        }
+
+        /* 按钮悬停效果 */
+        .trigger-btn:hover {
+            transform: translateY(-3px);
+            animation: glow 2s infinite;
         }
     </style>
 </head>
@@ -746,8 +782,8 @@
                                 溯源结果
                             </h3>
 
-                            <!-- Tracing Sections - Horizontal Layout -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <!-- Tracing Sections - Vertical Layout -->
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
                                 <!-- Text Tracing Section -->
                                 <div class="tracing-section">
                                     <div class="section-title"
@@ -800,7 +836,7 @@
                                                 </div>
                                                 <img id="original-image" src="../static/image/example_autumn.png"
                                                     alt="原始图片"
-                                                    style="width: 100%; height: 80px; object-fit: fill; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                    style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
                                             </div>
                                             <div class="arrow-icon">
                                                 <i class="fas fa-arrow-right"></i>
@@ -812,7 +848,7 @@
                                                     提取出的密钥图片：
                                                 </div>
                                                 <img id="processed-image" src="../static/image/key.png" alt="处理后图片"
-                                                    style="width: 100%; height: 80px; object-fit: fill; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                    style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0; background-color: #f8f9fa;">
                                             </div>
                                         </div>
 
@@ -855,144 +891,191 @@
 
                     <!-- 数据集检测部分 -->
                     <div class="dataset-section"
-                        style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); margin-top: 30px;">
-                        <div class="result-title" style="text-align: center; margin-bottom: 30px;">
-                            <i class="fas fa-database" style="font-size: 28px; color: #2c3e50; margin-right: 15px;"></i>
-                            <span style="font-size: 24px; font-weight: bold; color: #2c3e50;">数据集检测</span>
+                        style="background: linear-gradient(135deg, #0c1426 0%, #1a2332 50%, #0f2027 100%); border-radius: 20px; padding: 25px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1); margin-top: 20px; position: relative; overflow: hidden;">
+
+                        <!-- 科技感背景装饰 -->
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 20% 80%, rgba(0, 150, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(0, 200, 255, 0.1) 0%, transparent 50%); pointer-events: none;">
+                        </div>
+                        <div
+                            style="position: absolute; top: 10px; right: 10px; width: 100px; height: 100px; border: 2px solid rgba(0, 150, 255, 0.3); border-radius: 50%; animation: pulse 2s infinite;">
+                        </div>
+                        <div
+                            style="position: absolute; bottom: 20px; left: 20px; width: 60px; height: 60px; border: 1px solid rgba(0, 200, 255, 0.2); border-radius: 50%; animation: pulse 3s infinite reverse;">
+                        </div>
+
+                        <div class="result-title"
+                            style="text-align: center; margin-bottom: 40px; position: relative; z-index: 1;">
+                            <div
+                                style="display: inline-flex; align-items: center; background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(0, 200, 255, 0.2)); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 50px; padding: 15px 30px; backdrop-filter: blur(10px);">
+                                <i class="fas fa-microchip"
+                                    style="font-size: 32px; color: #00eaff; margin-right: 15px; text-shadow: 0 0 10px #00eaff;"></i>
+                                <span
+                                    style="font-size: 24px; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px rgba(0, 234, 255, 0.5); letter-spacing: 2px;">数据集检测系统</span>
+                            </div>
                         </div>
 
                         <div class="dataset-controls"
-                            style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px;">
+                            style="display: flex; justify-content: center; gap: 25px; margin-bottom: 25px; position: relative; z-index: 1;">
                             <button id="start-dataset-test" class="trigger-btn btn-success"
-                                style="background: linear-gradient(135deg, #27ae60, #2ecc71); border: none; border-radius: 25px; padding: 15px 30px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: all 0.3s ease;">
-                                <i class="fas fa-play" style="margin-right: 10px;"></i>
-                                <span>开始数据集检测</span>
+                                style="background: linear-gradient(135deg, #00eaff, #0096ff); border: 1px solid rgba(0, 234, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 234, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
+                                <i class="fas fa-rocket" style="margin-right: 12px; color: #ffffff;"></i>
+                                <span>启动检测引擎</span>
                             </button>
                             <button id="load-dataset-results" class="trigger-btn btn-warning"
-                                style="background: linear-gradient(135deg, #f39c12, #e67e22); border: none; border-radius: 25px; padding: 15px 30px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); transition: all 0.3s ease;">
-                                <i class="fas fa-download" style="margin-right: 10px;"></i>
-                                <span>加载数据集结果</span>
+                                style="background: linear-gradient(135deg, #0096ff, #0056cc); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 150, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
+                                <i class="fas fa-database" style="margin-right: 12px; color: #ffffff;"></i>
+                                <span>加载检测结果</span>
                             </button>
                         </div>
 
                         <div id="dataset-status" class="status-indicator"
-                            style="display: none; text-align: center; padding: 15px; border-radius: 10px; margin: 20px 0; font-weight: bold;">
+                            style="display: none; text-align: center; padding: 15px; border-radius: 15px; margin: 20px 0; font-weight: bold; position: relative; z-index: 1;">
                         </div>
 
-                        <div id="dataset-results" class="dataset-results"
-                            style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                            <h3 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 24px;">
-                                <i class="fas fa-chart-bar"></i> 数据集测试结果
-                            </h3>
+                        <div id="dataset-results" class="dataset-results" style="position: relative; z-index: 1;">
+
 
                             <!-- 整体布局容器 -->
-                            <div
-                                style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto;">
+                            <div style="max-width: 1200px; margin: 0 auto;">
 
-                                <!-- 左侧指标网格 -->
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                    <!-- 样本总数 -->
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">常规样本总数</h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #f1c40f;">
-                                            <span class="metric-value" id="total-normal-samples">-</span>
+                                <!-- 指标说明部分 - 始终显示 -->
+                                <div class="info-box"
+                                    style="background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 200, 255, 0.1)); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 150, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); padding: 25px; margin-bottom: 25px; backdrop-filter: blur(15px);">
+                                    <h3
+                                        style="font-size: 24px; margin-bottom: 20px; color: #00eaff; text-align: center; text-shadow: 0 0 10px rgba(0, 234, 255, 0.5); font-weight: bold;">
+                                        <i class="fas fa-brain" style="margin-right: 5px;"></i>智能指标说明
+                                    </h3>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                                        <!-- 样本类型说明 -->
+                                        <div
+                                            style="background: rgba(0, 150, 255, 0.1); border: 1px solid rgba(0, 150, 255, 0.2); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px);">
+                                            <h4
+                                                style="font-size: 20px; margin-bottom: 20px; color: #00eaff; display: flex; align-items: center; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
+                                                <i class="fas fa-cube" style="margin-right: 10px;"></i>样本类型分析
+                                            </h4>
+                                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                                <div
+                                                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 24px;">📊</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 16px; color: #ffffff;">
+                                                            常规样本</div>
+                                                        <div style="font-size: 14px; color: #b0e0ff; margin-top: 4px;">
+                                                            无水印的原始正常图像</div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 24px;">🔍</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 16px; color: #ffffff;">
+                                                            水印样本</div>
+                                                        <div style="font-size: 14px; color: #b0e0ff; margin-top: 4px;">
+                                                            嵌入水印的图像</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">水印样本总数</h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #f1c40f;">
-                                            <span class="metric-value" id="total-watermark-samples">-</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 水印提示下的准确率 -->
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">水印提示+常规样本准确率
-                                        </h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #e74c3c;">
-                                            <span class="metric-value" id="watermark-accuracy-n">-</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">水印提示+水印样本准确率
-                                        </h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #27ae60;">
-                                            <span class="metric-value" id="watermark-accuracy">-</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 常规提示下的准确率 -->
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">常规提示+常规样本准确率
-                                        </h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #f39c12;">
-                                            <span class="metric-value" id="normal-accuracy">-</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center;">
-                                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #ecf0f1;">常规提示+水印样本准确率
-                                        </h3>
-                                        <div class="metric" style="font-size: 32px; font-weight: bold; color: #9b59b6;">
-                                            <span class="metric-value" id="normal-accuracy-w">-</span>
+                                        <!-- 准确率指标说明 -->
+                                        <div
+                                            style="background: rgba(0, 150, 255, 0.1); border: 1px solid rgba(0, 150, 255, 0.2); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px);">
+                                            <h4
+                                                style="font-size: 20px; margin-bottom: 20px; color: #00eaff; display: flex; align-items: center; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
+                                                <i class="fas fa-chart-line" style="margin-right: 10px;"></i>准确率指标
+                                            </h4>
+                                            <div style="display: flex; flex-direction: column; gap: 18px;">
+                                                <div
+                                                    style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 20px;">✅</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 15px; color: #ffffff;">
+                                                            水印提示+水印样本准确率</div>
+                                                        <div style="font-size: 13px; color: #b0e0ff; margin-top: 4px;">
+                                                            越高越好，体现对水印样本的分类准确性，理想近100%</div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 20px;">📈</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 15px; color: #ffffff;">
+                                                            常规提示+水印样本准确率</div>
+                                                        <div style="font-size: 13px; color: #b0e0ff; margin-top: 4px;">
+                                                            越高越好，反映常规提示下对水印样本的分类能力</div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 20px;">📈</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 15px; color: #ffffff;">
+                                                            水印提示+常规样本准确率</div>
+                                                        <div style="font-size: 13px; color: #b0e0ff; margin-top: 4px;">
+                                                            越高越好，代表水印提示下对常规样本的分类准确性</div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(0, 150, 255, 0.05); border-radius: 10px; border: 1px solid rgba(0, 150, 255, 0.1);">
+                                                    <span style="font-size: 22px;">🌟</span>
+                                                    <div>
+                                                        <div
+                                                            style="font-weight: bold; font-size: 15px; color: #ffffff;">
+                                                            常规提示+常规样本准确率</div>
+                                                        <div style="font-size: 13px; color: #b0e0ff; margin-top: 4px;">
+                                                            越高越好，衡量正常场景下对常规样本的分类性能</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- 右侧评估结果 -->
-                                <div style="display: flex; flex-direction: column; gap: 20px;">
-                                    <!-- 水印文本提示下 -->
+                                <!-- 样本总数显示 -->
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
                                     <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 25px;">
+                                        style="background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(0, 200, 255, 0.15)); border: 1px solid rgba(0, 150, 255, 0.4); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 150, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); padding: 30px; text-align: center; backdrop-filter: blur(10px);">
                                         <h3
-                                            style="font-size: 20px; margin-bottom: 20px; color: #ecf0f1; text-align: center;">
-                                            <i class="fas fa-shield-alt"></i> 水印文本提示下
-                                        </h3>
-                                        <div class="metric"
-                                            style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                            <div style="font-size: 16px; color: #bdc3c7; margin-bottom: 8px;">宏F1分数
-                                            </div>
-                                            <div style="font-size: 24px; font-weight: bold; color: #f1c40f;"
-                                                id="watermark-macro-f1">-</div>
-                                        </div>
-                                        <div class="metric"
-                                            style="padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                            <div style="font-size: 16px; color: #bdc3c7; margin-bottom: 8px;">整体准确率
-                                            </div>
-                                            <div style="font-size: 24px; font-weight: bold; color: #e74c3c;"
-                                                id="watermark-overall-accuracy">-</div>
+                                            style="font-size: 22px; margin-bottom: 20px; color: #00eaff; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
+                                            常规样本总数</h3>
+                                        <div class="metric" style="font-size: 36px; font-weight: bold; color: #ffffff;">
+                                            <span class="metric-value" id="total-normal-samples"
+                                                style="color: #ffffff !important; font-size: 36px; font-weight: bold;">
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <!-- 常规文本提示下 -->
                                     <div class="result-card"
-                                        style="background-color: #3498db; color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 25px;">
+                                        style="background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(0, 200, 255, 0.15)); border: 1px solid rgba(0, 150, 255, 0.4); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 150, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); padding: 30px; text-align: center; backdrop-filter: blur(10px);">
                                         <h3
-                                            style="font-size: 20px; margin-bottom: 20px; color: #ecf0f1; text-align: center;">
-                                            <i class="fas fa-chart-line"></i> 常规文本提示下
-                                        </h3>
-                                        <div class="metric"
-                                            style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                            <div style="font-size: 16px; color: #bdc3c7; margin-bottom: 8px;">宏F1分数
-                                            </div>
-                                            <div style="font-size: 24px; font-weight: bold; color: #f39c12;"
-                                                id="normal-macro-f1">-</div>
+                                            style="font-size: 22px; margin-bottom: 20px; color: #00eaff; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
+                                            水印样本总数</h3>
+                                        <div class="metric" style="font-size: 36px; font-weight: bold; color: #ffffff;">
+                                            <span class="metric-value" id="total-watermark-samples"
+                                                style="color: #ffffff !important; font-size: 36px; font-weight: bold;">
+                                            </span>
                                         </div>
-                                        <div class="metric"
-                                            style="padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                            <div style="font-size: 16px; color: #bdc3c7; margin-bottom: 8px;">整体准确率
-                                            </div>
-                                            <div style="font-size: 24px; font-weight: bold; color: #27ae60;"
-                                                id="normal-overall-accuracy">-</div>
-                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 图表可视化部分 - 初始隐藏 -->
+                                <div id="accuracy-charts" style="display: none;">
+                                    <h3
+                                        style="text-align: center; color: #00eaff; margin-bottom: 25px; font-size: 26px; text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);">
+                                        <i class="fas fa-chart-network"></i> 准确率分布图
+                                    </h3>
+                                    <div
+                                        style="background: rgba(0, 150, 255, 0.1); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 15px; padding: 30px; backdrop-filter: blur(10px);">
+                                        <canvas id="unified-chart" width="1000" height="500"
+                                            style="width: 100%; height: auto; max-width: 1000px; display: block; margin: 0 auto;"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -1172,33 +1255,151 @@
         }
 
         function displayDatasetResults(result) {
-            // 更新数据集测试结果 - 适配新的展示结构
-            const evaluatorResults = result.evaluator_results;
+            try {
+                // 更新数据集测试结果 - 适配新的展示结构
+                const evaluatorResults = result.evaluator_results;
 
-            // 样本总数
-            document.getElementById('total-normal-samples').textContent = result.total_normal_samples || '-';
-            document.getElementById('total-watermark-samples').textContent = result.total_watermark_samples || '-';
+                // 样本总数
+                const normalSamplesElement = document.getElementById('total-normal-samples');
+                const watermarkSamplesElement = document.getElementById('total-watermark-samples');
 
-            // 水印提示下的准确率
-            document.getElementById('watermark-accuracy-n').textContent = result.watermark_accuracy_n ? (result.watermark_accuracy_n).toFixed(2) + '%' : '-';
-            document.getElementById('watermark-accuracy').textContent = result.watermark_accuracy ? (result.watermark_accuracy).toFixed(2) + '%' : '-';
+                if (normalSamplesElement) {
+                    normalSamplesElement.textContent = result.total_normal_samples || '-';
+                }
+                if (watermarkSamplesElement) {
+                    watermarkSamplesElement.textContent = result.total_watermark_samples || '-';
+                }
 
-            // 常规提示下的准确率
-            document.getElementById('normal-accuracy').textContent = result.normal_accuracy ? (result.normal_accuracy).toFixed(2) + '%' : '-';
-            document.getElementById('normal-accuracy-w').textContent = result.normal_accuracy_w ? (result.normal_accuracy_w).toFixed(2) + '%' : '-';
+                // 显示图表部分
+                const accuracyChartsElement = document.getElementById('accuracy-charts');
+                if (accuracyChartsElement) {
+                    accuracyChartsElement.style.display = 'block';
+                }
 
-            // 评估器结果
-            if (evaluatorResults.watermark) {
-                document.getElementById('watermark-macro-f1').textContent = evaluatorResults.watermark.macro_f1.toFixed(2) + '%';
-                document.getElementById('watermark-overall-accuracy').textContent = evaluatorResults.watermark.accuracy.toFixed(2) + '%';
+                // 创建图表
+                createAccuracyCharts(result);
+
+                // 数据集结果容器现在始终显示，不需要重复设置
+            } catch (error) {
+                console.error('Error displaying dataset results:', error);
+            }
+        }
+
+        function createAccuracyCharts(result) {
+            // 获取准确率数据
+            const watermarkAccuracy = result.watermark_accuracy || 0;
+            const watermarkAccuracyN = result.watermark_accuracy_n || 0;
+            const normalAccuracy = result.normal_accuracy || 0;
+            const normalAccuracyW = result.normal_accuracy_w || 0;
+
+            // 创建统一图表
+            createUnifiedChart(watermarkAccuracy, watermarkAccuracyN, normalAccuracy, normalAccuracyW);
+        }
+
+        function createUnifiedChart(watermarkAccuracy, watermarkAccuracyN, normalAccuracy, normalAccuracyW) {
+            const canvas = document.getElementById('unified-chart');
+            if (!canvas) {
+                console.error('Canvas element not found');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('Could not get 2D context');
+                return;
+            }
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // 清除画布
+            ctx.clearRect(0, 0, width, height);
+
+            // 设置背景为透明
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, width, height);
+
+            // 定义数据
+            const data = [
+                { value: watermarkAccuracy, label: '水印提示+水印样本', color: '#00EAFF' },
+                { value: normalAccuracyW, label: '常规提示+水印样本', color: '#00EAFF' },
+                { value: watermarkAccuracyN, label: '水印提示+常规样本', color: '#00EAFF' },
+                { value: normalAccuracy, label: '常规提示+常规样本', color: '#00EAFF' }
+            ];
+
+            // 绘制坐标轴
+            const margin = 60;
+            const chartWidth = width - 2 * margin;
+            const chartHeight = height - 2 * margin;
+            const barWidth = chartWidth / data.length * 0.8;
+            const barSpacing = chartWidth / data.length * 0.2;
+
+            // Y轴
+            ctx.strokeStyle = '#00eaff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, height - margin);
+            ctx.stroke();
+
+            // X轴
+            ctx.beginPath();
+            ctx.moveTo(margin, height - margin);
+            ctx.lineTo(width - margin, height - margin);
+            ctx.stroke();
+
+            // Y轴刻度和网格线
+            ctx.strokeStyle = 'rgba(0, 234, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#00eaff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i <= 10; i++) {
+                const y = margin + (chartHeight * i / 10);
+                const value = (100 - i * 10).toFixed(0);
+
+                // 网格线
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(width - margin, y);
+                ctx.stroke();
+
+                // 刻度值
+                ctx.fillText(value + '%', margin - 10, y);
             }
 
-            if (evaluatorResults.normal) {
-                document.getElementById('normal-macro-f1').textContent = evaluatorResults.normal.macro_f1.toFixed(2) + '%';
-                document.getElementById('normal-overall-accuracy').textContent = evaluatorResults.normal.accuracy.toFixed(2) + '%';
-            }
+            // 绘制柱状图
+            data.forEach((item, index) => {
+                const x = margin + index * (chartWidth / data.length) + barSpacing / 2;
+                const barHeight = (item.value / 100) * chartHeight;
+                const y = height - margin - barHeight;
 
-            document.getElementById('dataset-results').style.display = 'block';
+                // 创建渐变
+                const gradient = ctx.createLinearGradient(x, y, x, height - margin);
+                gradient.addColorStop(0, item.color);
+                gradient.addColorStop(1, item.color + '80');
+
+                // 绘制柱子
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, y, barWidth, barHeight);
+
+                // 绘制数值
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.value.toFixed(2) + '%', x + barWidth / 2, y - 15);
+
+                // 绘制标签
+                ctx.fillStyle = '#00eaff';
+                ctx.font = '14px Arial';
+                ctx.fillText(item.label, x + barWidth / 2, height - margin + 25);
+            });
+
+            // 绘制标题
+            ctx.fillStyle = '#00eaff';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('准确率对比图', width / 2, margin - 20);
         }
 
         // Function to update detection results

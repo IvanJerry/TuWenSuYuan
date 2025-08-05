@@ -814,7 +814,15 @@
                             <span>Token数量: <span id="wm-token-count">0</span></span>
                             <span>熵值: <span id="wm-entropy">0.00</span></span>
                         </div>
-                        <div class="wm-text-label">生成文本</div>
+
+                        <!-- 二进制序列显示 -->
+                        <div class="wm-text-label" style="margin-top: 20px;">生成时的二进制序列</div>
+                        <div class="wm-highlight-text" id="wm-binary-identity"
+                            style="font-family: monospace; font-size: 12px; line-height: 1.4; word-break: break-all; background: #f8f9fa; border: 1px solid #e0e0e0; padding: 10px; border-radius: 4px; color: #666;">
+                            等待生成结果...
+                        </div>
+
+                        <div class="wm-text-label" style="margin-top: 20px;">生成文本</div>
                         <div class="wm-highlight-text" id="wm-highlight-text"></div>
                     </div>
                 </div>
@@ -987,6 +995,9 @@
 
             // 更新最终高亮文本
             updateHighlightedText(data.generation_history);
+
+            // 更新二进制序列
+            updateBinaryIdentity(data.identity);
 
             // 清理
             currentAIResponseElement = null;
@@ -1271,6 +1282,12 @@
             document.getElementById('wm-token-count').textContent = '0';
             document.getElementById('wm-entropy').textContent = '0.00';
             document.getElementById('wm-highlight-text').innerHTML = '';
+
+            // 重置二进制序列显示
+            const binaryElement = document.getElementById('wm-binary-identity');
+            binaryElement.textContent = '等待生成结果...';
+            binaryElement.style.color = '#666';
+            binaryElement.style.borderColor = '#e0e0e0';
         }
 
         // 更新高亮文本
@@ -1304,6 +1321,20 @@
                 'None': ''
             };
             return colorMap[color] || '';
+        }
+
+        // 更新二进制序列显示
+        function updateBinaryIdentity(identity) {
+            const binaryElement = document.getElementById('wm-binary-identity');
+            if (identity && identity.trim() !== "") {
+                binaryElement.textContent = identity;
+                binaryElement.style.color = '#27ae60'; // 绿色表示成功
+                binaryElement.style.borderColor = '#27ae60';
+            } else {
+                binaryElement.textContent = "未获取到二进制序列";
+                binaryElement.style.color = '#e74c3c'; // 红色表示失败
+                binaryElement.style.borderColor = '#e74c3c';
+            }
         }
 
         // 显示状态信息
