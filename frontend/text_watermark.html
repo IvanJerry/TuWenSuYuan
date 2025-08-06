@@ -643,6 +643,17 @@
 
         let entropyRadarChart, embeddingRatioPieChart;
 
+        // sessionStorage 键名
+        const STORAGE_KEYS = {
+            INPUT_TEXT: 'text_watermark_input_text',
+            IDENTITY_BINARY: 'text_watermark_identity_binary',
+            INITIAL_CAPTION: 'text_watermark_initial_caption',
+            COLORED_TEXT: 'text_watermark_colored_text',
+            EXTRACTED_BINARY: 'text_watermark_extracted_binary',
+            METRICS: 'text_watermark_metrics',
+            STATUS_MESSAGE: 'text_watermark_status_message'
+        };
+
         // 提取水印函数
         async function extractWatermark() {
             const inputText = document.getElementById('input-text').value.trim();
@@ -709,6 +720,9 @@
 
                     // 更新图表
                     updateCharts(data.metrics);
+
+                    // 保存指标到 sessionStorage
+                    sessionStorage.setItem(STORAGE_KEYS.METRICS, JSON.stringify(data.metrics));
 
                     showStatus(`水印验证完成！匹配率: ${data.metrics.match_rate.toFixed(2)}%`, 'success');
                 } else {
@@ -868,6 +882,7 @@
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function () {
             renderCharts();
+            restorePageState(); // 恢复页面状态
 
             const submenuToggles = document.querySelectorAll('.sidebar .has-submenu');
 
@@ -905,7 +920,148 @@
                     extractWatermark();
                 }
             });
+
+            // 添加输入事件监听器，实时保存状态
+            document.getElementById('input-text').addEventListener('input', savePageState);
+            document.getElementById('identity-binary').addEventListener('input', savePageState);
+            document.getElementById('initial-caption').addEventListener('input', savePageState);
         });
+
+        // 页面卸载时保存状态
+        window.addEventListener('beforeunload', function () {
+            savePageState();
+        });
+
+        // 页面可见性改变时保存状态
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                savePageState();
+            }
+        });
+
+        // 保存页面状态到 sessionStorage
+        function savePageState() {
+            try {
+                // 保存输入文本
+                const inputText = document.getElementById('input-text').value;
+                sessionStorage.setItem(STORAGE_KEYS.INPUT_TEXT, inputText);
+
+                // 保存身份二进制序列
+                const identityBinary = document.getElementById('identity-binary').value;
+                sessionStorage.setItem(STORAGE_KEYS.IDENTITY_BINARY, identityBinary);
+
+                // 保存初始描述
+                const initialCaption = document.getElementById('initial-caption').value;
+                sessionStorage.setItem(STORAGE_KEYS.INITIAL_CAPTION, initialCaption);
+
+                // 保存带颜色的文本
+                const coloredText = document.getElementById('colored-text').innerHTML;
+                sessionStorage.setItem(STORAGE_KEYS.COLORED_TEXT, coloredText);
+
+                // 保存提取的二进制序列
+                const extractedBinary = document.getElementById('extracted-binary').textContent;
+                sessionStorage.setItem(STORAGE_KEYS.EXTRACTED_BINARY, extractedBinary);
+
+                // 保存状态消息
+                const statusMessage = document.getElementById('status-message');
+                if (statusMessage.style.display !== 'none') {
+                    sessionStorage.setItem(STORAGE_KEYS.STATUS_MESSAGE, statusMessage.innerHTML);
+                }
+
+                console.log('页面状态已保存到 sessionStorage');
+            } catch (error) {
+                console.error('保存页面状态失败:', error);
+            }
+        }
+
+        // 从 sessionStorage 恢复页面状态
+        function restorePageState() {
+            try {
+                // 恢复输入文本
+                const savedInputText = sessionStorage.getItem(STORAGE_KEYS.INPUT_TEXT);
+                if (savedInputText) {
+                    document.getElementById('input-text').value = savedInputText;
+                    console.log('已恢复输入文本');
+                }
+
+                // 恢复身份二进制序列
+                const savedIdentityBinary = sessionStorage.getItem(STORAGE_KEYS.IDENTITY_BINARY);
+                if (savedIdentityBinary) {
+                    document.getElementById('identity-binary').value = savedIdentityBinary;
+                    console.log('已恢复身份二进制序列');
+                }
+
+                // 恢复初始描述
+                const savedInitialCaption = sessionStorage.getItem(STORAGE_KEYS.INITIAL_CAPTION);
+                if (savedInitialCaption) {
+                    document.getElementById('initial-caption').value = savedInitialCaption;
+                    console.log('已恢复初始描述');
+                }
+
+                // 恢复带颜色的文本
+                const savedColoredText = sessionStorage.getItem(STORAGE_KEYS.COLORED_TEXT);
+                if (savedColoredText && savedColoredText !== '<p>请输入文本和身份序列，然后点击验证按钮...</p>') {
+                    document.getElementById('colored-text').innerHTML = savedColoredText;
+                    console.log('已恢复带颜色的文本');
+                }
+
+                // 恢复提取的二进制序列
+                const savedExtractedBinary = sessionStorage.getItem(STORAGE_KEYS.EXTRACTED_BINARY);
+                if (savedExtractedBinary && savedExtractedBinary !== '等待提取...') {
+                    document.getElementById('extracted-binary').textContent = savedExtractedBinary;
+                    console.log('已恢复提取的二进制序列');
+                }
+
+                // 恢复状态消息
+                const savedStatusMessage = sessionStorage.getItem(STORAGE_KEYS.STATUS_MESSAGE);
+                if (savedStatusMessage) {
+                    const statusMessage = document.getElementById('status-message');
+                    statusMessage.style.display = 'block';
+                    statusMessage.innerHTML = savedStatusMessage;
+                    console.log('已恢复状态消息');
+                }
+
+                // 恢复指标（如果有的话）
+                const savedMetrics = sessionStorage.getItem(STORAGE_KEYS.METRICS);
+                if (savedMetrics) {
+                    try {
+                        const metrics = JSON.parse(savedMetrics);
+                        updateMetrics(metrics);
+                        console.log('已恢复验证指标');
+                    } catch (error) {
+                        console.error('恢复指标失败:', error);
+                    }
+                }
+
+                console.log('页面状态恢复完成');
+            } catch (error) {
+                console.error('恢复页面状态失败:', error);
+            }
+        }
+
+        // 清除页面状态（用于新会话）
+        function clearPageState() {
+            try {
+                Object.values(STORAGE_KEYS).forEach(key => {
+                    sessionStorage.removeItem(key);
+                });
+                console.log('页面状态已清除');
+            } catch (error) {
+                console.error('清除页面状态失败:', error);
+            }
+        }
+
+        // 检查是否是新会话（页面首次加载且没有保存的状态）
+        function isNewSession() {
+            return !sessionStorage.getItem(STORAGE_KEYS.INPUT_TEXT) &&
+                !sessionStorage.getItem(STORAGE_KEYS.IDENTITY_BINARY);
+        }
+
+        // 在页面加载时检查是否是新会话
+        if (isNewSession()) {
+            console.log('检测到新会话，清除所有状态');
+            clearPageState();
+        }
     </script>
 </body>
 

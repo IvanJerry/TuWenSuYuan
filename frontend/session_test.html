@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SessionStorage 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .storage-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>SessionStorage 功能测试</h1>
+
+        <div class="test-section">
+            <h3>测试说明</h3>
+            <p>这个页面用于测试 sessionStorage 功能是否正常工作：</p>
+            <ul>
+                <li>在输入框中输入内容，然后导航到其他页面</li>
+                <li>返回此页面时，内容应该被恢复</li>
+                <li>关闭浏览器后重新打开，内容应该被清除</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>输入测试</h3>
+            <label>文本输入：</label>
+            <input type="text" id="test-input" placeholder="输入一些文本...">
+
+            <label>文本区域：</label>
+            <textarea id="test-textarea" rows="4" placeholder="输入多行文本..."></textarea>
+
+            <label>选择框：</label>
+            <select id="test-select">
+                <option value="">请选择...</option>
+                <option value="option1">选项1</option>
+                <option value="option2">选项2</option>
+                <option value="option3">选项3</option>
+            </select>
+        </div>
+
+        <div class="test-section">
+            <h3>操作按钮</h3>
+            <button onclick="saveToStorage()">保存到 SessionStorage</button>
+            <button onclick="loadFromStorage()">从 SessionStorage 加载</button>
+            <button onclick="clearStorage()">清除 SessionStorage</button>
+            <button onclick="showStorageInfo()">显示存储信息</button>
+            <button onclick="navigateToChat()">导航到 Chat 页面</button>
+            <button onclick="navigateToTextWatermark()">导航到 Text Watermark 页面</button>
+        </div>
+
+        <div class="test-section">
+            <h3>状态信息</h3>
+            <div id="status-display"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>SessionStorage 内容</h3>
+            <div id="storage-display" class="storage-info">点击"显示存储信息"查看</div>
+        </div>
+    </div>
+
+    <script>
+        // 存储键名
+        const STORAGE_KEYS = {
+            TEST_INPUT: 'test_input',
+            TEST_TEXTAREA: 'test_textarea',
+            TEST_SELECT: 'test_select'
+        };
+
+        // 页面加载时恢复状态
+        document.addEventListener('DOMContentLoaded', function () {
+            loadFromStorage();
+            showStatus('页面已加载，状态已恢复', 'info');
+        });
+
+        // 页面卸载时保存状态
+        window.addEventListener('beforeunload', function () {
+            saveToStorage();
+        });
+
+        // 页面可见性改变时保存状态
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                saveToStorage();
+            }
+        });
+
+        // 输入时自动保存（防抖）
+        let saveTimeout;
+        document.getElementById('test-input').addEventListener('input', autoSave);
+        document.getElementById('test-textarea').addEventListener('input', autoSave);
+        document.getElementById('test-select').addEventListener('change', autoSave);
+
+        function autoSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveToStorage, 1000);
+        }
+
+        function saveToStorage() {
+            try {
+                const inputValue = document.getElementById('test-input').value;
+                const textareaValue = document.getElementById('test-textarea').value;
+                const selectValue = document.getElementById('test-select').value;
+
+                sessionStorage.setItem(STORAGE_KEYS.TEST_INPUT, inputValue);
+                sessionStorage.setItem(STORAGE_KEYS.TEST_TEXTAREA, textareaValue);
+                sessionStorage.setItem(STORAGE_KEYS.TEST_SELECT, selectValue);
+
+                showStatus('数据已保存到 SessionStorage', 'success');
+            } catch (error) {
+                showStatus('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const inputValue = sessionStorage.getItem(STORAGE_KEYS.TEST_INPUT) || '';
+                const textareaValue = sessionStorage.getItem(STORAGE_KEYS.TEST_TEXTAREA) || '';
+                const selectValue = sessionStorage.getItem(STORAGE_KEYS.TEST_SELECT) || '';
+
+                document.getElementById('test-input').value = inputValue;
+                document.getElementById('test-textarea').value = textareaValue;
+                document.getElementById('test-select').value = selectValue;
+
+                showStatus('数据已从 SessionStorage 加载', 'success');
+            } catch (error) {
+                showStatus('加载失败: ' + error.message, 'error');
+            }
+        }
+
+        function clearStorage() {
+            try {
+                Object.values(STORAGE_KEYS).forEach(key => {
+                    sessionStorage.removeItem(key);
+                });
+
+                // 清空输入框
+                document.getElementById('test-input').value = '';
+                document.getElementById('test-textarea').value = '';
+                document.getElementById('test-select').value = '';
+
+                showStatus('SessionStorage 已清除', 'info');
+            } catch (error) {
+                showStatus('清除失败: ' + error.message, 'error');
+            }
+        }
+
+        function showStorageInfo() {
+            try {
+                const storageInfo = {};
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    storageInfo[key] = sessionStorage.getItem(key);
+                }
+
+                document.getElementById('storage-display').textContent =
+                    JSON.stringify(storageInfo, null, 2);
+
+                showStatus('存储信息已显示', 'info');
+            } catch (error) {
+                showStatus('显示存储信息失败: ' + error.message, 'error');
+            }
+        }
+
+        function navigateToChat() {
+            saveToStorage();
+            window.location.href = 'chat.html';
+        }
+
+        function navigateToTextWatermark() {
+            saveToStorage();
+            window.location.href = 'text_watermark.html';
+        }
+
+        function showStatus(message, type) {
+            const statusDisplay = document.getElementById('status-display');
+            statusDisplay.innerHTML = `<div class="status ${type}">${message}</div>`;
+
+            // 3秒后自动清除状态
+            setTimeout(() => {
+                statusDisplay.innerHTML = '';
+            }, 3000);
+        }
+
+        // 检查是否是新会话
+        function isNewSession() {
+            return !sessionStorage.getItem(STORAGE_KEYS.TEST_INPUT) &&
+                !sessionStorage.getItem(STORAGE_KEYS.TEST_TEXTAREA);
+        }
+
+        // 页面加载时检查是否是新会话
+        if (isNewSession()) {
+            console.log('检测到新会话');
+            showStatus('检测到新会话，SessionStorage 为空', 'info');
+        }
+    </script>
+</body>
+
+</html>
