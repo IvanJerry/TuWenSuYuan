@@ -35,7 +35,7 @@ init_single_detection = evaluate_app.initialize_models
 
 # 创建Flask应用
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})  # 允许跨域请求
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)  # 允许跨域请求
 
 # 存储SSE连接的队列
 sse_connections = {}

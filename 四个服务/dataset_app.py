@@ -17,9 +17,12 @@ project_root = "/root/project/yun/FAP/lm-watermarking-main/"
 base_project_root = "/root/project/yun/FAP/"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# 添加必要的路径
-sys.path.append(project_root)
-sys.path.append(base_project_root)
+# 保存原始路径
+original_sys_path = sys.path.copy()
+
+# 为dataset_app设置正确的路径优先级
+dataset_sys_path = [base_project_root, project_root] + original_sys_path
+sys.path = dataset_sys_path
 
 # 导入必要的模块
 try:
@@ -189,7 +192,7 @@ class FAPEvaluator:
 
         return input, label
        
-    def test(self):
+    def test(self, normal_samples_count=None, watermark_samples_count=None):
         """A generic testing pipeline."""
         global dataset_status
         
@@ -197,6 +200,12 @@ class FAPEvaluator:
         dataset_status["progress"] = 0
         dataset_status["results"] = {}
         dataset_status["error"] = None
+        
+        # 获取测试参数，如果没有传入则使用默认值
+        if normal_samples_count is None:
+            normal_samples_count = dataset_status.get("test_params", {}).get("normal_samples_count", 1000)
+        if watermark_samples_count is None:
+            watermark_samples_count = dataset_status.get("test_params", {}).get("watermark_samples_count", 1000)
         
         try:
             self.model.eval()
@@ -242,7 +251,14 @@ class FAPEvaluator:
             force_total_watermark_samples_w = 0
 
             total_batches = len(data_loader)    
+            processed_normal_samples = 0
+            processed_watermark_samples = 0
+            
             for batch_idx, batch in enumerate(tqdm(data_loader)):
+                # 检查是否已经达到目标样本数量
+                if processed_normal_samples >= normal_samples_count and processed_watermark_samples >= watermark_samples_count:
+                    break
+                    
                 # 更新进度
                 dataset_status["progress"] = int((batch_idx / total_batches) * 100)          
                 # nature test
@@ -280,39 +296,39 @@ class FAPEvaluator:
                     
                     # 生成模型与输出
                     with torch.no_grad():
-                      #################
-                      #    forward:   #
-                      #################
-                      output = net(input_img)
-                      output_steg = output.narrow(1, 0, 4 * c.channels_in)
-                      output_z = output.narrow(1, 4 * c.channels_in, output.shape[1] - 4 * c.channels_in)
-                      steg_img = iwt(output_steg)
-                      backward_z = gauss_noise(output_z.shape)        
+                                             #################
+                       #    forward:   #
+                       #################
+                       output = net(input_img)
+                       output_steg = output.narrow(1, 0, 4 * c1.channels_in)
+                       output_z = output.narrow(1, 4 * c1.channels_in, output.shape[1] - 4 * c1.channels_in)
+                       steg_img = iwt(output_steg)
+                       backward_z = gauss_noise(output_z.shape)        
 
-                      #################
-                      #   backward:   #
-                      #################
-                      output_rev = torch.cat((output_steg, backward_z), 1)
-                      bacward_img = net(output_rev, rev=True)
-                      secret_rev = bacward_img.narrow(1, 4 * c.channels_in, bacward_img.shape[1] - 4 * c.channels_in)
-                      secret_rev = iwt(secret_rev)
-                      cover_rev = bacward_img.narrow(1, 0, 4 * c.channels_in)
-                      cover_rev = iwt(cover_rev)
-                      resi_cover = (steg_img - cover) * 20
-                      resi_secret = (secret_rev - secret) * 20
+                       #################
+                       #   backward:   #
+                       #################
+                       output_rev = torch.cat((output_steg, backward_z), 1)
+                       bacward_img = net(output_rev, rev=True)
+                       secret_rev = bacward_img.narrow(1, 4 * c1.channels_in, bacward_img.shape[1] - 4 * c1.channels_in)
+                       secret_rev = iwt(secret_rev)
+                       cover_rev = bacward_img.narrow(1, 0, 4 * c1.channels_in)
+                       cover_rev = iwt(cover_rev)
+                       resi_cover = (steg_img - cover) * 20
+                       resi_secret = (secret_rev - secret) * 20
                       
-                      # 调整保存路径
-                      save_dir = os.path.join(current_dir, "database")
-                      os.makedirs(save_dir, exist_ok=True)
+                       # 调整保存路径
+                       save_dir = os.path.join(current_dir, "database")
+                       os.makedirs(save_dir, exist_ok=True)
                       
-                      torchvision.utils.save_image(cover, os.path.join(save_dir, f"cover_batch_{batch_idx}.png"), nrow=4, normalize=True)
-                      torchvision.utils.save_image(secret, os.path.join(save_dir, f"secret_batch_{batch_idx}.png"), nrow=4, normalize=True)
-                      torchvision.utils.save_image(steg_img, os.path.join(save_dir, f"steg_batch_{batch_idx}.png"), nrow=4, normalize=True)
-                      torchvision.utils.save_image(secret_rev, os.path.join(save_dir, f"secret_rev_batch_{batch_idx}.png"), nrow=4, normalize=True)
+                       torchvision.utils.save_image(cover, os.path.join(save_dir, f"cover_batch_{batch_idx}.png"), nrow=4, normalize=True)
+                       torchvision.utils.save_image(secret, os.path.join(save_dir, f"secret_batch_{batch_idx}.png"), nrow=4, normalize=True)
+                       torchvision.utils.save_image(steg_img, os.path.join(save_dir, f"steg_batch_{batch_idx}.png"), nrow=4, normalize=True)
+                       torchvision.utils.save_image(secret_rev, os.path.join(save_dir, f"secret_rev_batch_{batch_idx}.png"), nrow=4, normalize=True)
                       
-          
-                      # 得到 water_image
-                      water_image = steg_img.detach()
+           
+                       # 得到 water_image
+                       water_image = steg_img.detach()
                     water_label = torch.full((batch_size,), self.num_classes).to(self.device)
 
                     # 将水印图片和标签加入原始数据中
@@ -381,6 +397,9 @@ class FAPEvaluator:
                     self.evaluator2.process(output2, label2)
                     self.evaluator3.process(output3, label2)
                     
+                    # 更新已处理的样本数量
+                    processed_normal_samples += batch_size
+                    processed_watermark_samples += batch_size
                     
                 torch.cuda.empty_cache()
                 
@@ -509,9 +528,17 @@ def initialize_models():
 
 def run_test_in_thread():
     """在线程中运行测试"""
-    global test_thread
+    global test_thread, dataset_status
     if global_evaluator:
-        test_thread = threading.Thread(target=global_evaluator.test)
+        # 获取测试参数
+        test_params = dataset_status.get("test_params", {})
+        normal_samples_count = test_params.get("normal_samples_count", 1000)
+        watermark_samples_count = test_params.get("watermark_samples_count", 1000)
+        
+        test_thread = threading.Thread(
+            target=global_evaluator.test,
+            args=(normal_samples_count, watermark_samples_count)
+        )
         test_thread.start()
 
 # Flask路由
@@ -551,11 +578,39 @@ def start_dataset_test():
         return jsonify({"error": "测试正在进行中"}), 400
     
     try:
+        # 获取请求参数
+        try:
+            data = request.get_json()
+            if data is None:
+                data = {}
+        except Exception:
+            data = {}
+        
+        normal_samples_count = data.get('normal_samples_count', 1000)  # 默认1000个常规样本
+        watermark_samples_count = data.get('watermark_samples_count', 1000)  # 默认1000个水印样本
+        
+        # 验证参数
+        if normal_samples_count < 1 or watermark_samples_count < 1:
+            return jsonify({"error": "样本数量必须大于0"}), 400
+        
+        if normal_samples_count > 10000 or watermark_samples_count > 10000:
+            return jsonify({"error": "样本数量不能超过10000"}), 400
+        
+        # 保存测试参数到全局状态
+        dataset_status["test_params"] = {
+            "normal_samples_count": normal_samples_count,
+            "watermark_samples_count": watermark_samples_count
+        }
+        
         dataset_status["status"] = "running"
         run_test_in_thread()
         return jsonify({
             "message": "数据集测试已开始",
-            "status": "started"
+            "status": "started",
+            "test_params": {
+                "normal_samples_count": normal_samples_count,
+                "watermark_samples_count": watermark_samples_count
+            }
         })
     except Exception as e:
         dataset_status["status"] = "failed"
@@ -591,3 +646,6 @@ if __name__ == "__main__":
     evaluator = FAPEvaluator()
     print("开始测试...")
     evaluator.test()
+
+# 恢复原始的sys.path
+sys.path = original_sys_path

@@ -1045,17 +1045,44 @@
                         </div>
 
                         <div class="dataset-controls"
-                            style="display: flex; justify-content: center; gap: 25px; margin-bottom: 25px; position: relative; z-index: 1;">
-                            <button id="start-dataset-test" class="trigger-btn btn-success"
-                                style="background: linear-gradient(135deg, #00eaff, #0096ff); border: 1px solid rgba(0, 234, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 234, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
-                                <i class="fas fa-rocket" style="margin-right: 12px; color: #ffffff;"></i>
-                                <span>启动检测引擎</span>
-                            </button>
-                            <button id="load-dataset-results" class="trigger-btn btn-warning"
-                                style="background: linear-gradient(135deg, #0096ff, #0056cc); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 150, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
-                                <i class="fas fa-database" style="margin-right: 12px; color: #ffffff;"></i>
-                                <span>加载检测结果</span>
-                            </button>
+                            style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 25px; position: relative; z-index: 1;">
+
+                            <!-- 样本数量控制 -->
+                            <div
+                                style="display: flex; align-items: center; gap: 20px; background: rgba(0, 150, 255, 0.1); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px);">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <label
+                                        style="color: #ffffff; font-weight: bold; font-size: 16px; display: flex; align-items: center;">
+                                        <i class="fas fa-cube" style="margin-right: 8px; color: #00eaff;"></i>
+                                        常规样本数量:
+                                    </label>
+                                    <input type="number" id="normal-samples-count" value="1000" min="1" max="10000"
+                                        style="background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 150, 255, 0.5); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: bold; color: #012a4a; width: 100px; text-align: center;">
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <label
+                                        style="color: #ffffff; font-weight: bold; font-size: 16px; display: flex; align-items: center;">
+                                        <i class="fas fa-shield-alt" style="margin-right: 8px; color: #00eaff;"></i>
+                                        水印样本数量:
+                                    </label>
+                                    <input type="number" id="watermark-samples-count" value="1000" min="1" max="10000"
+                                        style="background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 150, 255, 0.5); border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: bold; color: #012a4a; width: 100px; text-align: center;">
+                                </div>
+                            </div>
+
+                            <!-- 按钮组 -->
+                            <div style="display: flex; justify-content: center; gap: 25px;">
+                                <button id="start-dataset-test" class="trigger-btn btn-success"
+                                    style="background: linear-gradient(135deg, #00eaff, #0096ff); border: 1px solid rgba(0, 234, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 234, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
+                                    <i class="fas fa-rocket" style="margin-right: 12px; color: #ffffff;"></i>
+                                    <span>启动检测引擎</span>
+                                </button>
+                                <button id="load-dataset-results" class="trigger-btn btn-warning"
+                                    style="background: linear-gradient(135deg, #0096ff, #0056cc); border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 30px; padding: 18px 35px; font-size: 16px; font-weight: bold; box-shadow: 0 8px 25px rgba(0, 150, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); transition: all 0.3s ease; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
+                                    <i class="fas fa-database" style="margin-right: 12px; color: #ffffff;"></i>
+                                    <span>加载检测结果</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div id="dataset-status" class="status-indicator"
@@ -1167,33 +1194,7 @@
                                     </div>
                                 </div>
 
-                                <!-- 样本总数显示 -->
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                                    <div class="result-card"
-                                        style="background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(0, 200, 255, 0.15)); border: 1px solid rgba(0, 150, 255, 0.4); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 150, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); padding: 30px; text-align: center; backdrop-filter: blur(10px);">
-                                        <h3
-                                            style="font-size: 22px; margin-bottom: 20px; color: #00eaff; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
-                                            常规样本总数</h3>
-                                        <div class="metric" style="font-size: 36px; font-weight: bold; color: #ffffff;">
-                                            <span class="metric-value" id="total-normal-samples"
-                                                style="color: #ffffff !important; font-size: 36px; font-weight: bold;">
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    <div class="result-card"
-                                        style="background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(0, 200, 255, 0.15)); border: 1px solid rgba(0, 150, 255, 0.4); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 150, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); padding: 30px; text-align: center; backdrop-filter: blur(10px);">
-                                        <h3
-                                            style="font-size: 22px; margin-bottom: 20px; color: #00eaff; text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);">
-                                            水印样本总数</h3>
-                                        <div class="metric" style="font-size: 36px; font-weight: bold; color: #ffffff;">
-                                            <span class="metric-value" id="total-watermark-samples"
-                                                style="color: #ffffff !important; font-size: 36px; font-weight: bold;">
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <!-- 图表可视化部分 - 初始隐藏 -->
                                 <div id="accuracy-charts" style="display: none;">
@@ -1308,16 +1309,35 @@
         document.getElementById('start-dataset-test').addEventListener('click', async function () {
             try {
                 this.disabled = true;
+
+                // 获取用户设置的样本数量
+                const normalSamplesCount = parseInt(document.getElementById('normal-samples-count').value) || 1000;
+                const watermarkSamplesCount = parseInt(document.getElementById('watermark-samples-count').value) || 1000;
+
+                // 验证输入
+                if (normalSamplesCount < 1 || normalSamplesCount > 10000) {
+                    alert('常规样本数量必须在1-10000之间');
+                    return;
+                }
+                if (watermarkSamplesCount < 1 || watermarkSamplesCount > 10000) {
+                    alert('水印样本数量必须在1-10000之间');
+                    return;
+                }
+
                 const datasetStatus = document.getElementById('dataset-status');
                 datasetStatus.style.display = 'block';
                 datasetStatus.className = 'status-indicator status-running';
-                datasetStatus.textContent = '正在启动数据集测试...';
+                datasetStatus.textContent = `正在启动数据集测试... (常规样本: ${normalSamplesCount}, 水印样本: ${watermarkSamplesCount})`;
 
                 const response = await fetch('http://localhost:3001/api/dataset_detection/start_dataset_test', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    body: JSON.stringify({
+                        normal_samples_count: normalSamplesCount,
+                        watermark_samples_count: watermarkSamplesCount
+                    })
                 });
 
                 const result = await response.json();
@@ -1398,17 +1418,6 @@
             try {
                 // 更新数据集测试结果 - 适配新的展示结构
                 const evaluatorResults = result.evaluator_results;
-
-                // 样本总数
-                const normalSamplesElement = document.getElementById('total-normal-samples');
-                const watermarkSamplesElement = document.getElementById('total-watermark-samples');
-
-                if (normalSamplesElement) {
-                    normalSamplesElement.textContent = result.total_normal_samples || '-';
-                }
-                if (watermarkSamplesElement) {
-                    watermarkSamplesElement.textContent = result.total_watermark_samples || '-';
-                }
 
                 // 显示图表部分
                 const accuracyChartsElement = document.getElementById('accuracy-charts');
